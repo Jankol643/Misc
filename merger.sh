@@ -2,7 +2,7 @@
 << 'MULTILINE-COMMENT'
     This program merges and deduplicates all files in a folder
     Usage cleaner.sh
-    Date 5/2/2021
+    Date 9/2/2021
     Author Jan Kolnberger
     Dependencies: time (for measuring execution time), wc (for counting words and file sizes), rm (for removing files), bc (for calculating)
 MULTILINE-COMMENT
