@@ -4,7 +4,7 @@
     Script must be in same folder as specified file
     Usage ./cleaner.sh filename.txt
     Date 5/2/2021
-    Author Jan Kolnberger
+    Author Jankol643
     Dependencies: bc for calculation, time for measuring execution time, awk, wc
     TODO: Calculation saved storage
 MULTILINE-COMMENT
@@ -13,6 +13,24 @@ separator='---------------------------------------------------------------'
 echomsg="Exiting script..."
 
 output="final" #  file name of output file
+
+# Print Header in ASCII Art
+# https://www.patorjk.com/software/taag/#p=display&c=echo&f=Doom&t=cleaner
+# Font Doom
+
+echo "      _                            ";
+echo "     | |                           ";
+echo "  ___| | ___  __ _ _ __   ___ _ __ ";
+echo " / __| |/ _ \/ _\` | '_ \ / _ \ '__|";
+echo "| (__| |  __/ (_| | | | |  __/ |   ";
+echo " \___|_|\___|\__,_|_| |_|\___|_|   ";
+echo "                                   ";
+echo "                                   ";
+
+copyright="(c) 2021 Jankol643"
+echo $copyright
+
+echo $separator
 
 # check if dependencies are installed
 echo "check if dependencies are installed..."
@@ -109,13 +127,13 @@ echo "Cleaned file: "
 filebclean=$(wc -c <$output) # filesize in bytes
 filembclean=$(bc <<<"scale=2 ; $filebclean / 1024") # filesize in MB
 echo "Filesize MB: " $filembclean
-filegbclean=$(bc <<<"scale=2 ; $fileb / 1024^2") # filesize in GB
+filegbclean=$(bc <<<"scale=2 ; $filebclean / 1024^2") # filesize in GB
 echo "Filesize GB: " $filegbclean
 
 echo $separator
 
 # Calcuting saved storage
-saved=$(($filemborig - $filembclean))
+saved=$(bc <<<"scale=2 ; $filemborig - $filembclean")
 echo "Cleaning saved " $saved "MB of storage."
 
 echo "Script finished successfully. Outputfile: " $output
