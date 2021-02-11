@@ -65,7 +65,8 @@ if [ -f "$1" ]; then # file exists
             exit 1 # terminate the script
         fi
     else
-        echo "$1 is not a text file. Please specify a text file (.txt)."
+        echo "$1 is not a text filseparator='---------------------------------------------------------------'
+echomsg="Exiting script..."e. Please specify a text file (.txt)."
         echo "Usage: ./cleaner.sh filename.txt"
         echo "Exiting..."
         exit 1 # terminate the script

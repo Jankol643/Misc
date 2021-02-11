@@ -1,26 +1,54 @@
 #!/bin/bash
 << 'MULTILINE-COMMENT'
     This program merges and deduplicates all files in a folder
-    Usage cleaner.sh
-    Date 9/2/2021
-    Author Jan Kolnberger
-    Dependencies: time (for measuring execution time), wc (for counting words and file sizes), rm (for removing files), bc (for calculating)
+    Usage merger.sh
+    Date 5/2/2021
+    Author Jankol643
+    Dependencies: wc (for counting words and file sizes), rm (for removing files), bc (for calculating)
 MULTILINE-COMMENT
+
+# Print Header in ASCII Art
+# https://www.patorjk.com/software/taag/#p=display&c=echo&f=Doom&t=merger
+# Font Doom
+
+echo "                                    ";
+echo "                                    ";
+echo " _ __ ___   ___ _ __ __ _  ___ _ __ ";
+echo "| '_ \` _ \ / _ \ '__/ _\` |/ _ \ '__|";
+echo "| | | | | |  __/ | | (_| |  __/ |   ";
+echo "|_| |_| |_|\___|_|  \__, |\___|_|   ";
+echo "                     __/ |          ";
+echo "                    |___/           ";
+
+copyright="(c) 2021 Jankol643"
+echo $copyright
+
+echo $separator
+
+separator='---------------------------------------------------------------'
+errormsg="Exiting script..."
+
+# check if dependencies are installed
+echo "check if dependencies are installed..."
+command_exists() {
+    # check if command exists and fail otherwise
+    command -v "$1" >/dev/null 2>&1
+    if [[ $? -ne 0 ]]; then
+        echo "I require $1 but it's not installed. Abort."
+        echo $errormsg
+        exit 1
+    fi
+}
+
+for COMMAND in "wc" "rm" "bc"; do
+    command_exists "${COMMAND}"
+done
 
 # filepath=$1 # read file name from command line as argument
 # read -p "Enter path: " $filepath # prompt the user to enter a filepath
 filepath=./test1/
 output="final" #  file name of output file
 output=$filepath_$output
-
-# Ask user if command should be timed
-read -p "Should the command be timed? [y/n]" timed
-if [[ $timed==[yY] ]]; then
-    echo "Command will be timed."
-    /bin/time -v cleaner.sh #measures script execution time more precisely than with built-in time
-else
-    echo "Not timing command."
-fi
 
 # check existence of directory
 << 'MULTILINE-COMMENT'
@@ -29,6 +57,7 @@ then
     echo "Directory $filepath exists."
 else
     echo "Error: Directory $filepath does not exists."
+    echo $errormsg
     exit 1 # terminate the script
 fi
 
@@ -53,37 +82,50 @@ echo "Counting words..."
 # wc -w *.txt | awk '{print $filepath}'; # prints the word count for every file as a number (awk cuts the filename)
 wc -w *.txt # prints the word count for every file with the filename
 
-wordconcat=$(wc -w $chkoutput) # words count for concatenated file
+# Calculating file sizes of concatenated file
+echo "Calculating file sizes of concatenated file..."
+sizeconcat=$(wc -c < $chkoutput) # filesize in bytes of concatenated file
+sizeconcatMB=$(bc <<< "scale=2 ; $sizeconcat / 1024") # filesize in MB
+sizeconcatGB=$(bc <<< "scale=2 ; $sizeconcat / 1024^2") # filesize in GB
+echo "Filesize:" $sizeconcatMB "MB, " $sizeconcatGB "GB"
+
+wordconcat=$(wc -w < $chkoutput) # words count for concatenated file
+echo "No. of words in concatenated file: " $wordconcat
+
 echo "Deduplicating output ..."
 awk '!X[$0]++' $chkoutput >> $output
 
 echo "Removing temporary file..."
 rm $chkoutput # remove temporary file
 
-# echo "Merging and deduplicating files..."
-# awk '!a[$0]++' $filepath # merge and deduplicate files in specified folder (https://stackoverflow.com/questions/16873669/combine-multiple-text-files-and-remove-duplicates)
+echo $separator
 
 # calculating file sizes
+echo "Calculating file sizes of final file..."
 finalbc=$(wc -c < $output) # filesize in bytes
-sizeMB=$(bc <<< "scale=2 ; $finalbc / 1024") # filesize in MB
-sizeGB=$(bc <<< "scale=2 ; $finalbc / 1024^2") # filesize in GB
-echo "Filesize: " $sizeMB "MB, " $sizeGB "GB"
+sizefinalMB=$(bc <<< "scale=2 ; $finalbc / 1024") # filesize in MB
+sizefinalGB=$(bc <<< "scale=2 ; $finalbc / 1024^2") # filesize in GB
+echo "Filesize final file:" $sizefinalMB "MB, " $sizefinalGB "GB"
 
-finalwords=$(wc -w $output) #words in final file
-echo "Words in final file: " $finalwords
-duplicates=$wordconcat-$finalwords
+echo "Words in original file: " $wordconcat
+finalwords=$(wc -w < $output) #words in final file
+echo "Words in final file:" $finalwords
+duplicates=$(($wordconcat - $finalwords))
 dupepercentage=$(bc <<< "scale=2 ; $duplicates / $wordconcat")
 echo "duplicates: " $duplicates ", " "duplicated percentage: " $dupepercentage
+
+# Calcuting saved storage
+saved=$(bc <<<"scale=2 ; $sizeconcatMB - $sizefinalMB")
+echo "Cleaning saved" $saved "MB of storage."
 
 echo "Script finished successfully. Outputfile: " $output
 
 # Ask user if generated file should be analysed using PACK
-read -p "PACK analysis [y/n]" PACK_decis
-if [[ $PACK_decis==[yY] ]]; then
-    echo "Feeding the file to PACK for analysis"
-    statsgen $output -o passwords_masks$output # feed the file to PACK for analysis
-else
-    echo "Not analysing file. "
-    echo "Exiting script..."
-    exit 1 # terminate the script
-fi
+while true; do
+    read -p "PACK analysis [y/n]" yn
+    case $yn in
+        [Yy]* ) echo "Yes"; echo "Feeding the file to PACK for analysis"; statsgen $output -o passwords_masks$output; echo $errormsg; exit 0 ;;
+        [Nn]* ) echo "No. "; echo $errormsg; exit ;;
+        * ) echo "Please answer yes or no." ;;
+    esac
+done
