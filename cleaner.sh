@@ -10,7 +10,7 @@
 MULTILINE-COMMENT
 
 separator='---------------------------------------------------------------'
-echomsg="Exiting script..."
+errormsg="Exiting script..."
 
 output="final" #  file name of output file
 
@@ -61,20 +61,19 @@ if [ -f "$1" ]; then # file exists
             # do something as file has data
         else
             echo "$1 is empty."
-            echo "Exiting..."
+            echo $errormsg
             exit 1 # terminate the script
         fi
     else
-        echo "$1 is not a text filseparator='---------------------------------------------------------------'
-echomsg="Exiting script..."e. Please specify a text file (.txt)."
+        echo "$1 is not a text file. Please specify a text file (.txt)."
         echo "Usage: ./cleaner.sh filename.txt"
-        echo "Exiting..."
+        echo $errormsg
         exit 1 # terminate the script
     fi
 else # file is not found
     echo "$1 doesn't exist."
     echo "Usage: cleaner.sh filename.txt"
-    echo "Exiting..."
+    echo $errormsg
     exit 1 # terminate the script
 fi
 
@@ -145,8 +144,8 @@ echo $separator
 while true; do
     read -p "PACK analysis [y/n]" yn
     case $yn in
-        [Yy]* ) echo "Yes"; echo "Feeding the file to PACK for analysis"; statsgen $output -o passwords_masks$output; echo $echomsg; exit 0 ;;
-        [Nn]* ) echo "No. "; echo $echomsg; exit ;;
+        [Yy]* ) echo "Yes"; echo "Feeding the file to PACK for analysis"; statsgen $output -o passwords_masks$output; echo $errormsg; exit 0 ;;
+        [Nn]* ) echo "No. "; echo $errormsg; exit ;;
         * ) echo "Please answer yes or no." ;;
     esac
 done
