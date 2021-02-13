@@ -11,8 +11,8 @@ MULTILINE-COMMENT
 
 separator='---------------------------------------------------------------'
 errormsg="Exiting script..."
-
-output="final" #  file name of output file
+tempoutput="temp"
+defaultoutputdir="cleaned" # path to output directory
 
 # Print Header in ASCII Art
 # https://www.patorjk.com/software/taag/#p=display&c=echo&f=Doom&t=cleaner
@@ -93,7 +93,7 @@ echo $separator
 echo "sort by no. of occurences"
 sort -n $1 >${1}_occur.txt # sort by no. of occurences
 echo "remove duplicates"
-awk '!visited[$0]++' ${1}_occur.txt >$output # remove duplicates, https://iridakos.com/programming/2019/05/16/remove-duplicate-lines-preserving-order-linux
+awk '!visited[$0]++' ${1}_occur.txt > $tempoutput # remove duplicates, https://iridakos.com/programming/2019/05/16/remove-duplicate-lines-preserving-order-linux
 
 echo "Deleting temporary file..."
 rm ${1}_occur.txt # delete temporary file
@@ -102,7 +102,7 @@ echo $separator
 
 # Counting words and duplicates
 echo "Counting words and duplicates..."
-finalwords=$(wc -w <$output) #words in final file
+finalwords=$(wc -w < $tempoutput) #words in final file
 echo "Words in final file: " $finalwords
 duplicates=$(($nowords - $finalwords))
 dupepercentage=$(bc <<<"scale=2 ; $duplicates / $nowords")
@@ -113,7 +113,7 @@ echo $separator
 # calculating file sizes
 echo "Calculating file sizes..."
 echo "Original file: "
-fileborig=$(wc -c <$1) # filesize in bytes
+fileborig=$(wc -c < $1) # filesize in bytes
 filemborig=$(bc <<<"scale=2 ; $fileborig / 1024") # filesize in MB
 echo "Filesize MB: " $filemborig
 filegborig=$(bc <<<"scale=2 ; $fileborig / 1024^2") # filesize in GB
@@ -124,7 +124,7 @@ echo $separator
 # calculating file sizes
 echo "Calculating file sizes..."
 echo "Cleaned file: "
-filebclean=$(wc -c <$output) # filesize in bytes
+filebclean=$(wc -c < $tempoutput) # filesize in bytes
 filembclean=$(bc <<<"scale=2 ; $filebclean / 1024") # filesize in MB
 echo "Filesize MB: " $filembclean
 filegbclean=$(bc <<<"scale=2 ; $filebclean / 1024^2") # filesize in GB
@@ -136,7 +136,64 @@ echo $separator
 saved=$(bc <<<"scale=2 ; $filemborig - $filembclean")
 echo "Cleaning saved " $saved "MB of storage."
 
-echo "Script finished successfully. Outputfile: " $output
+echo "Script finished successfully. Outputfile: " $tempoutput
+
+# Read user specified output file path
+while true; do
+    read -p "Please enter output file path: " useroutputdir
+    #useroutputdir = ${useroutputdir:-$defaultoutputdir} # parameter expansion
+    # take the value the user enters, if none is specified, fall back to specified default value
+    if [ $useroutputdir=="" ]; then
+        echo "Path is empty."
+        echo "Falling back to default value" $defaultoutputdir
+        $useroutputdir=$defaultoutputdir
+    else
+        echo "Reading user input for file path ..."
+        $useroutputdir=$1
+    fi
+
+    # check if output directory exists
+    if [ -d "$useroutputdir" ]; then
+        echo "$useroutputdir is a directory."
+        break
+    # elif [ $useroutputdir -lt 1 ] #  file arguments less than 1 => no arguments given 
+    # then
+    #     echo "Incorrect Usage"
+    #     echo $errormsg
+    #     exit 1
+    elif [ ! -d "$useroutputdir" ] # directory does not exist
+    then
+        echo "Directory does not exist, creating it ..."
+        mkdir $useroutputdir # create folder
+        break
+    else
+        echo "Some other problem"
+        echo $errormsg
+        exit 1
+    fi
+
+done
+
+# Ask the user for the output file name
+while true; do
+    read -p "Please enter output file: " outputfile
+    if [ $outputfile=='' ];  then
+        echo "Output file string empty."
+        defaultoutput=$filename # set default to entry filename
+        output=$defaultoutput
+        echo "Falling back to default" $defaultoutput
+        break
+    else
+        echo "Taking user input..."
+        output=$outputfile #  file name of output file
+        break
+    fi
+done
+
+# Moving the output file to specified folder
+echo "Moving the output file to specified folder..."
+mv $tempoutput $useroutputdir/$output
+#mv $output $defaultoutputdir/$output
 
 echo $separator
 

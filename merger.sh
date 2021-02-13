@@ -75,7 +75,7 @@ for FILE in *.txt; do
         echo "$output exists."
         rm $output  # delete specified file (start with an empty file)
     fi
-    cat $FILE >> $chkoutput
+    cat $FILE > $chkoutput
 done
 
 echo "Counting words..."
@@ -85,6 +85,7 @@ wc -w *.txt # prints the word count for every file with the filename
 # Calculating file sizes of concatenated file
 echo "Calculating file sizes of concatenated file..."
 sizeconcat=$(wc -c < $chkoutput) # filesize in bytes of concatenated file
+echo $sizeconcat
 sizeconcatMB=$(bc <<< "scale=2 ; $sizeconcat / 1024") # filesize in MB
 sizeconcatGB=$(bc <<< "scale=2 ; $sizeconcat / 1024^2") # filesize in GB
 echo "Filesize:" $sizeconcatMB "MB, " $sizeconcatGB "GB"
@@ -96,7 +97,7 @@ echo "Deduplicating output ..."
 awk '!X[$0]++' $chkoutput >> $output
 
 echo "Removing temporary file..."
-rm $chkoutput # remove temporary file
+#rm $chkoutput # remove temporary file
 
 echo $separator
 
