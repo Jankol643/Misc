@@ -100,7 +100,7 @@ sorting(){
     sort -o ${1}_occur.txt # sort by no. of occurences
     endsort=`date +%s.%N`
     runtimesort=$( echo "$endsort - $startsort" | bc -l )
-    echo "Runtime sorting (by no. of occurences): " $runtimesort
+    echo "Runtime sorting: " $runtimesort
   fi
 }
 
@@ -178,7 +178,7 @@ readoutputfile(){
     read -p "Please enter output file: " outputfile
     if [ $outputfile=='' ];  then
       echo "Output file string empty."
-      defaultoutput=$filename # set default to entry filename
+      defaultoutput=$filename2 # set default to entry filename
       output=$defaultoutput
       echo "Falling back to default" $defaultoutput
       break
@@ -206,23 +206,29 @@ for COMMAND in "bc" "awk" "wc"; do
   command_exists "${COMMAND}"
 done
 
-filename=$1    # read file name from command line as argument
+# Extracting basename and extension from given file
+fileext=$(basename -- "$1")
+extension="${filename1##*.}"
+shortname="${filename1%.*}"
+echo "Filename 1: " $filename1
+echo "Extension: " $extension
+echo "Filename 2: " $filename2
 
-checkFile $filename $errormsg
+checkFile $fileext $errormsg
 echo $separator
-print_info $filename
+print_info $fileext
 echo $separator
 
-sorting $filename
+sorting $fileext
 deduplicating
 
 echo "Deleting temporary file..."
-rm ${1}_occur.txt # delete temporary file
+rm $shortname_occur.txt # delete temporary file
 
 echo $separator
 wordcount $tempoutput
 echo $separator
-filesizes $filename
+filesizes $fileext
 echo $separator
 filesizes $tempoutput
 echo $separator
