@@ -97,7 +97,7 @@ sorting(){
     echo "not sorted"
     startsort=`date +%s.%N`
     echo "sort file alphabetically"
-    sort -o ${1}_occur.txt # sort by no. of occurences
+    sort -o ${shortname}_occur.txt $fileext
     endsort=`date +%s.%N`
     runtimesort=$( echo "$endsort - $startsort" | bc -l )
     echo "Runtime sorting: " $runtimesort
@@ -208,13 +208,13 @@ done
 
 # Extracting basename and extension from given file
 fileext=$(basename -- "$1")
-extension="${filename1##*.}"
-shortname="${filename1%.*}"
-echo "Filename 1: " $filename1
+extension="${fileext##*.}"
+shortname="${fileext%.*}"
+echo "Filename 1: " $fileext
 echo "Extension: " $extension
-echo "Filename 2: " $filename2
+echo "Filename 2: " $shortname
 
-checkFile $fileext $errormsg
+checkFile $fileext
 echo $separator
 print_info $fileext
 echo $separator
