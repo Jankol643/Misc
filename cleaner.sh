@@ -96,8 +96,8 @@ sorting(){
     # return code not 0
     echo "not sorted"
     startsort=`date +%s.%N`
-    echo "sort file alphabetically"
-    sort -o ${shortname}_occur.txt $fileext
+    echo "sort file by number of occurences"
+    sort -nr -o ${shortname}_occur.txt $fileext
     endsort=`date +%s.%N`
     runtimesort=$( echo "$endsort - $startsort" | bc -l )
     echo "Runtime sorting: " $runtimesort
