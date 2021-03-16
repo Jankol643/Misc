@@ -12,6 +12,7 @@ separator='---------------------------------------------------------------'
 errormsg="Exiting script..."
 tempoutput="temp"
 defaultoutputdir="cleaned" # path to output directory
+withcount=0
 
 # Print Header in ASCII Art
 # https://www.patorjk.com/software/taag/#p=display&c=echo&f=Doom&t=cleaner
@@ -86,29 +87,23 @@ print_info(){
   echo "number of words" $nowords # prints the number of words
 }
 
-# Sorting file
-sorting(){
-  # check if file is sorted
-  if sort -C $1; then
-    # return code 0
-    echo "sorted"
-  else
-    # return code not 0
-    echo "not sorted"
-    startsort=`date +%s.%N`
-    echo "sort file by number of occurences"
-    sort -nr -o ${shortname}_occur.txt $fileext
-    endsort=`date +%s.%N`
-    runtimesort=$( echo "$endsort - $startsort" | bc -l )
-    echo "Runtime sorting: " $runtimesort
-  fi
-}
-
 # Deduplicating file
 deduplicating(){
   startdedup=`date +%s.%N`
   echo "remove duplicates"
-  awk '!visited[$0]++' ${shortname}_occur.txt > $tempoutput # remove duplicates, https://iridakos.com/programming/2019/05/16/remove-duplicate-lines-preserving-order-linux
+  if [ $1==1 ]; then
+    awk '{a[$0]++}END{for(x in a)print a[x], x}' $fileext > $tempoutput
+  else
+    awk 'a[$0]++' $fileext > $tempoutput # remove duplicates
+  fi
+  enddedup=`date +%s.%N`
+  runtimededup=$( echo "$enddedup - $startdedup" | bc -l )
+  echo "Runtime deduplication: " $runtimededup
+}
+
+ordering(){
+  startdedup=`date +%s.%N`
+  sort -k1,1nr -k2,2 -o sorted.txt $tempoutput #sort first column descending, secon default
   enddedup=`date +%s.%N`
   runtimededup=$( echo "$enddedup - $startdedup" | bc -l )
   echo "Runtime deduplication: " $runtimededup
@@ -219,11 +214,8 @@ echo $separator
 print_info $fileext
 echo $separator
 
-sorting $fileext
-deduplicating
-
-echo "Deleting temporary file..."
-rm $shortname_occur.txt # delete temporary file
+deduplicating $withcount
+ordering
 
 echo $separator
 wordcount $tempoutput
