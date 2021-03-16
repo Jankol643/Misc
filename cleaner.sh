@@ -108,7 +108,7 @@ sorting(){
 deduplicating(){
   startdedup=`date +%s.%N`
   echo "remove duplicates"
-  awk '!visited[$0]++' ${1}_occur.txt > $tempoutput # remove duplicates, https://iridakos.com/programming/2019/05/16/remove-duplicate-lines-preserving-order-linux
+  awk '!visited[$0]++' ${shortname}_occur.txt > $tempoutput # remove duplicates, https://iridakos.com/programming/2019/05/16/remove-duplicate-lines-preserving-order-linux
   enddedup=`date +%s.%N`
   runtimededup=$( echo "$enddedup - $startdedup" | bc -l )
   echo "Runtime deduplication: " $runtimededup
