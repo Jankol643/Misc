@@ -9,7 +9,7 @@ Dependencies: bc for calculation, time for measuring execution time, awk, wc
 """
 
 # Import local scripts
-import util
+from cleanerUtil import * as util
 
 util.print_header()
 
