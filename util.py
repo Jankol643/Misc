@@ -130,14 +130,14 @@ def filesize(filename, output):
             filembout = filemb
             filegbout = filegb
 
-        def generateReport(filename):
+        def calcSaved():
             savedmb = filemb - filembout
             savedgb = filegb - filegbout
             print('Cleaning saved :0} MB or :1} GB'.format(savedmb, savedgb))
         
         if output == 1 : # call with output file
             calcOutput(tempoutput)
-            generateReport(filename)
+            calcSaved()
         else :
             calcNormal(fileName)
     
