@@ -1,4 +1,5 @@
 # Necessary imports
+import sys # for terminating script
 import os # for file checks
 from tqdm import tqdm # needed for progress bar tqdm
 import shutil # for copying files
