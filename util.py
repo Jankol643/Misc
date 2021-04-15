@@ -45,7 +45,7 @@ def checkFile(filename):
 def print_info_wrapper(filename):
     def print_info(filename):
         print("print general information about the file")
-        print("filename", filename)
+        print("filename:", filename)
         global nolines=file_len(filename)
         print("No. of lines in file:", nolines)
 
@@ -58,57 +58,46 @@ def print_info_wrapper(filename):
     print_info(filename)
 
 def ordering(filename):
-    lineList = list()
+    # Create an empty dictionary
+    dict0 = dict()
+        
+    def writeWordsToDict(filename):
+        for line in text: # Loop through each line of the file
+            # Check if the word is already in dictionary
+            if line in dict0:
+                # Increment count of word by 1
+                dict0[line] = dict0[line] + 1
+            else:
+                # Add the word to dictionary with count 1
+                dict0[line] = 1
+        return dict0
     
-    def appending(filename):
-        print("Appending lines to list...")
-        with open(filename) as file
-            for line in file:
-                line = line.strip() #preprocess line
-                lineList.append(line)
-
-    # print(lineList)
-    appending(filename)
+    dict = writeWordsToDict(filename)
     
-    # Given a list of words, return a dictionary of
-    # word-frequency pairs.
-    def wordListToFreqDict(lineList):
-        print("Counting word frequencies")
-        wordfreq = [lineList.count(p) for p in lineList]
-        print("Writing words to dictionary...")
-        return dict(list(zip(lineList,wordfreq)))
-    
-    dictionary = wordListToFreqDict(lineList)
-    
-    # Sort a dictionary of word-frequency pairs in
-    # order of descending frequency.
-    def sortFreqDict(freqdict):
-        print("Sorting dictionary in order of descending frequency...")
-        aux = [(freqdict[key], key) for key in freqdict]
-        aux.sort()
-        aux.reverse()
-        return aux
-    
-    sorteddict = sortFreqDict(dictionary)
+    def sortDictByFreq(dict0):
+        sorted_d = dict( sorted(dict0.items(), key=operator.itemgetter(1),reverse=True))
+        return sorted_d
+        
+    dictSorted = sortDictByFreq(dict)
     
     # Writes the given dictionary to the given output file
     # Delimiter is required as an argument
-    def writeDicToFile(Dict, delimiter):
+    def writeDicToFile(dictSorted, delimiter):
         print("Writing dictionary to output file...")
         wcount = open(wcount,"w") # erasing all content in file
         print("Writing words with count")
-        for key,val in sorteddict.items(): 
+        for key,val in dictSorted.items(): 
            s = str(val) + delimiter + str(key)
            b = wcount.write(s)
         wcount.close()
         words = open(words,"w") # erasing all content in file
         print("Writing words only")
-        for val in sorteddict.items():
+        for val in dictSorted.items():
             s = str(key)
             words.write(s)
         words.close()
     
-    writeDicToFile(sorteddict, " ")
+    writeDicToFile(dictSorted, " ")
     print(separator)
 
 def wordcount():
