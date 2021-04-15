@@ -30,24 +30,23 @@ def checkFile(filename){
     print "Check if file exists..."
     if os.path.isfile(filename):
         print("File exists.")
-    if filename.endswith('.txt'):
-      print("File is a text file.")
-        if os.stat(filename).st_size > 0
-          print("File has some data")
+        if filename.endswith('.txt'):
+            print("File is a text file.")
+            if os.stat(filename).st_size > 0
+                print("File has some data")
+            else
+                print("File is empty")
+                print(errormsg)
+                sys.exit()
         else
-          print("File is empty")
-          print(errormsg)
-          sys.exit()
-    else
-      print("File is not a text file.")
-      print(errormsg)
-      sys.exit()
+            print("File is not a text file.")
+            print(errormsg)
+            sys.exit()
     else
         print("File does not exist")
         print("Usage: ./cleaner.sh filename.txt")
         print(errormsg)
         sys.exit()
-
 }
 
 def print_info_wrapper(filename){
@@ -106,7 +105,7 @@ def ordering(filename){
     
     # Writes the given dictionary to the given output file
     # Delimiter is required as an argument
-    def writeDicToFile(tempoutput, Dict, delimiter){
+    def writeDicToFile(Dict, delimiter){
         print("Writing dictionary to output file...")
         wcount = open(wcount,"w") # erasing all content in file
         print("Writing words with count")
@@ -114,15 +113,15 @@ def ordering(filename){
            s = str(val) + delimiter + str(key)
            b = wcount.write(s)
         wcount.close()
-        wocount = open(wocount,"w") # erasing all content in file
+        words = open(words,"w") # erasing all content in file
         print("Writing words only")
         for val in sorteddict.items():
             s = str(key)
-            wocount.write(s)
-        wocount.close()
+            words.write(s)
+        words.close()
     }
     
-    writeDicToFile(tempoutput, sorteddict, " ")
+    writeDicToFile(sorteddict, " ")
     print(separator)
 }
 
