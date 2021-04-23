@@ -72,7 +72,7 @@ def wordcount(outputDir, filepath, listFile, dicFile, withCount):
         return clean_List
     
     def createOutputFolder(filepath, outputDir):
-        filepath = "C:/Users/Jan Kolnberger/Documents/Privat/Git"
+        filepath = askForFilepath()
         folderPath = filepath + "/" + outputDir
         print("Output folder path:", folderPath)
         if not os.path.exists(folderPath):
