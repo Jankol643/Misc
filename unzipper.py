@@ -91,8 +91,12 @@ def loopExtractFiles(zipDirectory, targetDirectory):
             lineSum += getLinesFromFile(targetDirectory, filename)
             filesizeSumGB += getSizeOfFile(targetDirectory, filename)
         return lineSum,filesizeSumGB
-
+        
+        TODO: move faulty files to separate folder
         def printFaultyFiles(faultyFiles):
+            noFaulty = len(faultyFiles)
+            noFaultyText = "{} faulty files found"
+            print(noFaultyText.format(noFaulty))
             for item in faultyFiles
                 print(item)
 
