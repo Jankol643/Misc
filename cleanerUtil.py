@@ -3,6 +3,8 @@ import sys # for terminating script
 import os # for file checks
 from tqdm import tqdm # needed for progress bar tqdm
 import shutil # for copying files
+from pyfiglet import Figlet # import font library
+
 
 # Setting standard variables
 separator='---------------------------------------------------------------'
@@ -22,22 +24,22 @@ def print_header():
     print(result)
 
 def checkFile(filename):
-    print "Check if file exists..."
+    print("Check if file exists...")
     if os.path.isfile(filename):
         print("File exists.")
         if filename.endswith('.txt'):
             print("File is a text file.")
-            if os.stat(filename).st_size > 0
+            if os.stat(filename).st_size > 0:
                 print("File has some data")
-            else
+            else:
                 print("File is empty")
                 print(errormsg)
                 sys.exit()
-        else
+        else:
             print("File is not a text file.")
             print(errormsg)
             sys.exit()
-    else
+    else:
         print("File does not exist")
         print("Usage: ./cleaner.sh filename.txt")
         print(errormsg)
@@ -47,13 +49,13 @@ def print_info_wrapper(filename):
     def print_info(filename):
         print("print general information about the file")
         print("filename:", filename)
-        global nolines=file_len(filename)
+        global nolines = file_len(filename)
         print("No. of lines in file:", nolines)
 
     def file_len(fname):
         with open(fname) as f:
-        for i, l in enumerate(f):
-            pass
+            for i, l in enumerate(f):
+                pass
         return i + 1
 
     print_info(filename)
@@ -85,13 +87,15 @@ def ordering(filename):
     # Delimiter is required as an argument
     def writeDicToFile(dictSorted, delimiter):
         print("Writing dictionary to output file...")
-        wcount = open(wcount,"w") # erasing all content in file
+        dicOutputFile = "wcount.txt"
+        wcount = open(dicOutputFile,"w") # erasing all content in file
         print("Writing words with count")
         for key,val in dictSorted.items(): 
            s = str(val) + delimiter + str(key)
            b = wcount.write(s)
         wcount.close()
-        words = open(words,"w") # erasing all content in file
+        wordsOutputFile = "words.txt"
+        words = open(wordsOutputFile,"w") # erasing all content in file
         print("Writing words only")
         for val in dictSorted.items():
             s = str(key)
@@ -126,32 +130,31 @@ def filesize(filename, output):
         
         def calcOutput(tempoutput):
             print("Calculating file size of output file...")
-            calcNormal(tempoutput)
-            filebout = fileb # filesize in bytes of output file
-            filembout = filemb
-            filegbout = filegb
+            filebout = calcNormal(filename).fileb # filesize in bytes of output file
+            filembout = calcNormal(filename).filemb
+            filegbout = calcNormal(filename).filegb
 
-        def calcSaved():
-            savedmb = filemb - filembout
-            savedgb = filegb - filegbout
+        def calcSaved(tempoutput):
+            savedmb = calcNormal(tempoutput).filemb - calcOutput(tempoutput).filembout
+            savedgb = calcNormal(tempoutput).filegb - calcOutput(tempoutput).filegbout
             print('Cleaning saved :0} MB or :1} GB'.format(savedmb, savedgb))
         
         if output == 1 : # call with output file
             calcOutput(tempoutput)
             calcSaved()
         else :
-            calcNormal(fileName)
+            calcNormal(filename)
     
     print(separator)
 
 def PACKAnalysis(wocount):
     pack = input("PACK analysis [y/n]")
-    if pack in ('y', 'Y','yes', 'Yes', 'YES')
+    if pack in ('y', 'Y','yes', 'Yes', 'YES'):
         print("Feeding the file to PACK for analysis")
         statsgen wocount -o passwords_masks
         print(errormsg)
         sys.exit()
-    elif pack in ('n', 'N', 'no', 'No', 'NO')
+    elif pack in ('n', 'N', 'no', 'No', 'NO'):
         print("Not analysing file.")
         print(errormsg)
         sys.exit()
