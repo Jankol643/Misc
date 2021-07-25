@@ -1,3 +1,8 @@
+"""
+Various useful functions to avoid code duplication
+Created: 25/07/2021
+"""
+
 import sys
 import os
 from tkinter import Tk, filedialog # for selecting folder with GUI
@@ -31,21 +36,23 @@ def askForFileOrDirectory(type, action, extension):
     if (type=='folder'):
         var = filedialog.askdirectory() # Returns opened path as str
     else:
+        extension = '*.' + extension
         if (action=='open'):
-            var = filedialog.askopenfiles(filetypes=extension)
+            var = filedialog.askopenfile(mode ='r', filetypes=['File', extension])
         elif (action=='save'):
-            var = filedialog.asksaveasfilename(filetypes=extension)
+            var = filedialog.asksaveasfilename(mode ='w', filetypes=['File', extension])
     print(sep)
     return var
 
 """
-Counts the number of lines of a files using enumerate
+Counts the number of lines of a file using enumerate
 """
 def file_len(fname):
     with open(fname) as f:
         for i, l in enumerate(f):
             pass
-        return i + 1
+        noLines = i + 1
+    return noLines
 
 """
 Checks if the file exists and is a non-empty text file
