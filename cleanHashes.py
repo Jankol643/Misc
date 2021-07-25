@@ -25,13 +25,19 @@ def print_header():
     #result = pyfiglet.figlet_format(text, font = selectedFont )
     #print(result)
 
-def askForFilepath():
+def askForFileOrDirectory(type, action, extension):
     root = Tk() # pointing root to Tk() to use it as Tk() in program.
     root.withdraw() # Hides small tkinter window.
     root.attributes('-topmost', True) # Opened windows will be active. above all windows despite of selection.
-    open_dir = filedialog.askdirectory() # Returns opened path as str
-    return open_dir
+    if (type=='folder'):
+        var = filedialog.askdirectory() # Returns opened path as str
+    else:
+        if (action=='open'):
+            var = filedialog.askopenfiles(filetypes=extension)
+        elif (action=='save'):
+            var = filedialog.asksaveasfilename(filetypes=extension)
     print(separator)
+    return var
 
 def getSize(filename):
     st = os.stat(filename)
@@ -40,21 +46,16 @@ def getSize(filename):
     filesizeGB = filesizeMB / 1024
     return filesizeB, filesizeMB, filesizeGB
 
-def processFolder(outputdir, filepath, listFile, dicFile, withCount):
-    def createWorkDir(filepath):
-        workdir = askForFilepath()
-        if not os.path.exists(workdir):
-            os.makedirs(workdir)
-        return workdir
-            
-    def moveFiles(filepath, workdir):
+def processFolder(outputdir, filepath, listFile, dicFile, withCount, counter, noOfFiles):
+    
+    def moveFiles(filepath, workdir, counter):
         # Loop through every file in directory
         for filename in os.listdir(filepath):
             counter += 1
             print("Copying file", counter, "of", noOfFiles, "called", filename)
             shutil.copy(filepath, workdir)
-                    
-    def processFiles(workdir):
+    
+    def processFiles(workdir, counter):
         lineList = list()
         for filename in os.listdir(workdir):
             counter += 1
@@ -67,7 +68,7 @@ def processFolder(outputdir, filepath, listFile, dicFile, withCount):
                     lineList.append(cleanedLine)
                     file.write(cleanedLine)
         return lineList
-                    
+
     def cleanLine(line):
         splitString = line.split(" ")[1]
         if (keepHashes == 0):
@@ -77,8 +78,6 @@ def processFolder(outputdir, filepath, listFile, dicFile, withCount):
             cleanedLine = splitString
             return cleanedLine
     
-
-
     def writeListToFile(lineList, folderPath, listFile):
         print("Writing concatenated list to file")
         listFile = folderPath + "/" + listFile
@@ -120,5 +119,18 @@ def processFolder(outputdir, filepath, listFile, dicFile, withCount):
             else:
                 for key in sortedDict:
                     f.write(str(key))
-        return dicFile
+        
         print(separator)
+        return dicFile
+
+    workdir = askForFileOrDirectory('folder')
+    moveFiles(filepath, workdir, counter)
+    lineList = processFiles(workdir, counter)
+    folderPath = askForFileOrDirectory('folder', '', "")
+    listFile = askForFileOrDirectory('file', 'save', 'txt')
+    writeListToFile(lineList, folderPath, listFile)
+    freqDict = listToDict(lineList)
+    sortedDict = sortDictByFreq(freqDict)
+    folderPath = askForFileOrDirectory('folder', '', '')
+    dicFile = askForFileOrDirectory('file', 'save', 'txt')
+    file = writeDicToFile(sortedDict, folderPath, dicFile, 1)
