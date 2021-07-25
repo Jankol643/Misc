@@ -3,71 +3,26 @@ import os  # for file checks
 import shutil  # for copying files
 import sys  # for terminating script
 from operator import itemgetter
+import masterUtil # for commonly used functions
 
 from pyfiglet import Figlet  # import font library
 from tqdm import tqdm  # needed for progress bar tqdm
 
 # Setting standard variables
-separator = '---------------------------------------------------------------'
-errormsg = "Exiting script..."
 tempoutput = "temp.txt"
 defaultoutputdir = "cleaned"  # path to output directory
 withcount = 0
 nolines = 0
 
-# Print Header in ASCII Art
-# https://github.com/pwaller/pyfiglet
-# Font Big
-
-"""
-Prints the header in the defined font using pyfiglet
-"""
-def print_header():
-    text = "Cleaner"
-    selectedFont = "Big"
-    result = pyfiglet.figlet_format(text, font=selectedFont)
-    print(result)
-
-"""
-Counts the number of lines of a files using enumerate
-"""
-def file_len(fname):
-    with open(fname) as f:
-        for i, l in enumerate(f):
-            pass
-        return i + 1
-
-"""
-Checks if the file exists and is a non-empty text file
-"""
-def checkFile(filename):
-    print("Check if file exists...")
-    if os.path.isfile(filename):
-        print("File exists.")
-        if filename.endswith('.txt'):
-            print("File is a text file.")
-            if os.stat(filename).st_size > 0:
-                print("File has some data")
-            else:
-                print("File is empty")
-                print(errormsg)
-                sys.exit()
-        else:
-            print("File is not a text file.")
-            print(errormsg)
-            sys.exit()
-    else:
-        print("File does not exist")
-        print("Usage: ./cleaner.sh filename.txt")
-        print(errormsg)
-        sys.exit()
+masterUtil.printSeparator()
+masterUtil.print_header('cleanerUtil')
 
 """print_info_wrapper
 Prints info about the file
 """
 def print_info_wrapper(filename):
-
-    nolines=file_len(filename)
+    filename=masterUtil.askForFileOrDirectory('file', 'open', 'txt')
+    nolines=masterUtil.file_len(filename)
     def print_info(filename):
         print("print general information about the file")
         print("filename:", filename)
@@ -101,7 +56,7 @@ def ordering(filename):
     """
     def sortDictByFreq(dict0):
         sorted_d = dict(
-            sorted(dict0.items(), key=operator.itemgetter(1), reverse=True))
+            sorted(dict0.items(), key=itemgetter(1), reverse=True))
         return sorted_d
 
     dictSorted = sortDictByFreq(dict)
@@ -126,46 +81,37 @@ def ordering(filename):
         words.close()
 
     writeDicToFile(dictSorted, " ")
-    print(separator)
+    masterUtil.printSeparator()
 
 # Counts lines before and after cleaning and saved lines
 def wordcount():
     print("Counting lines and duplicates")
     print("Number of lines original:", nolines)
-    nolinesoutput = file_len(tempoutput)
+    nolinesoutput = masterUtil.file_len(tempoutput)
     print("Number of lines output:", nolinesoutput)
     linessaved = nolines - nolinesoutput
     print("Lines saved", linessaved)
     percentagesaved = linessaved/nolines*100
     print('Cleaning deleted :0} lines and saved :1} % of total :2}'.format(
         linessaved, percentagesaved, nolines))
-    print(separator)
-
+    masterUtil.printSeparator
 
 def filesize(filename, output):
 
     def calculatingSizes(filename, output):
         print("Calculating file size")
 
-        def calcNormal(filename):
-            fileb = os.stat(filename).st_size
-            print("Filesize B: " + fileb)
-            filemb = fileb/1024
-            print("Filesize MB: " + filemb)
-            filegb = filemb/(1024 ** 2)  # ** is power operator
-            print("Filesize GB: " + filegb)
-
         def calcOutput(tempoutput):
             print("Calculating file size of output file...")
             # filesize in bytes of output file
-            filebout = calcNormal(filename).fileb
-            filembout = calcNormal(filename).filemb
-            filegbout = calcNormal(filename).filegb
+            filebout = masterUtil.getSize(filename).fileb
+            filembout = masterUtil.getSize(filename).filemb
+            filegbout = masterUtil.getSize(filename).filegb
 
         def calcSaved(tempoutput):
-            savedmb = calcNormal(tempoutput).filemb - \
+            savedmb = masterUtil.getSize(tempoutput).filemb - \
                 calcOutput(tempoutput).filembout
-            savedgb = calcNormal(tempoutput).filegb - \
+            savedgb = masterUtil.getSize(tempoutput).filegb - \
                 calcOutput(tempoutput).filegbout
             print('Cleaning saved :0} MB or :1} GB'.format(savedmb, savedgb))
 
@@ -173,23 +119,21 @@ def filesize(filename, output):
             calcOutput(tempoutput)
             calcSaved()
         else:
-            calcNormal(filename)
+            masterUtil.getSize(filename)
 
-    print(separator)
-
+    masterUtil.printSeparator
 
 def PACKAnalysis(wocount):
     pack = input("PACK analysis [y/n]")
     if pack in ('y', 'Y', 'yes', 'Yes', 'YES'):
         print("Feeding the file to PACK for analysis")
         #statsgen wocount - o passwords_masks
-        print(errormsg)
+        masterUtil.printError
         sys.exit()
     elif pack in ('n', 'N', 'no', 'No', 'NO'):
         print("Not analysing file.")
-        print(errormsg)
+        masterUtil.printError
         sys.exit()
-
 
 def copyDefinite(filename, tempoutput):
     print("Copying file to final destination")
