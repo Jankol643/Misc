@@ -5,9 +5,12 @@ from tkinter import Tk, filedialog # for selecting folder with GUI
 import zipfile
 import os
 import time
+import shutil
+import ntpath
 #from tqdm import tqdm # needed for progress bar tqdm
 
 def askForFilepath():
+    askForFilepath.__doc__ = "Asks the user for a filepath via a GUI"
     root = Tk() # pointing root to Tk() to use it as Tk() in program.
     root.withdraw() # Hides small tkinter window.
     root.attributes('-topmost', True) # Opened windows will be active. above all windows despite of selection.
@@ -15,13 +18,12 @@ def askForFilepath():
     return open_dir
 
 def loopExtractFiles(zipDirectory, targetDirectory):
-    
+    loopExtractFiles.__doc__ = "Loops through a given directory, extracts all zip files and gathers some info about the files"
     def extractFiles(zipDirectory, targetDirectory):
+        extractFiles.__doc__ = "Extracts zip files to the target directory"
 
         def isSubset(fileListZip, fileListTarget):
-            stringToAppend = '.zip'
-            available = []
-            available = [s + stringToAppend for s in fileListTarget]
+            isSubset.__doc__ = "Checks if target directory contains already extracted files"
             diff = []
             fileListTarget = set(fileListTarget)
             diff = [item for item in fileListZip if item not in fileListTarget]
@@ -35,7 +37,6 @@ def loopExtractFiles(zipDirectory, targetDirectory):
         noOfFilesTotal = len(fileListZip)
         fileCounter = 0 # number of current file
         faultyFiles = []
-        excCounter = 0
         diff = isSubset(fileListZip, fileListTarget)
         noOfFilesUnprocessed = len(diff)
         tic = time.perf_counter()
@@ -56,9 +57,10 @@ def loopExtractFiles(zipDirectory, targetDirectory):
                     
         toc = time.perf_counter()
         timeS = toc - tic
-        return fileCounter, excCounter, faultyFiles, timeS
+        return fileCounter, faultyFiles, timeS
 
     def getInfoFromFolder(targetDirectory):
+        getInfoFromFolder.__doc__ = "Gets info about files in a directory"
         print("getInfo", targetDirectory)
         fileList = os.listdir(targetDirectory)
         noOfFiles = len(fileList)
@@ -91,22 +93,14 @@ def loopExtractFiles(zipDirectory, targetDirectory):
             lineSum += getLinesFromFile(targetDirectory, filename)
             filesizeSumGB += getSizeOfFile(targetDirectory, filename)
         return lineSum,filesizeSumGB
-        
-        TODO: move faulty files to separate folder
-        def printFaultyFiles(faultyFiles):
-            noFaulty = len(faultyFiles)
-            noFaultyText = "{} faulty files found"
-            print(noFaultyText.format(noFaulty))
-            for item in faultyFiles
-                print(item)
 
-    fileCounter, excCounter, faultyFiles, timeS = extractFiles(zipDirectory, targetDirectory)
-    printFaultyFiles(faultyFiles)
+    fileCounter, faultyFiles, timeS = extractFiles(zipDirectory, targetDirectory)
     lineSum,filesizeSumGB = getInfoFromFolder(targetDirectory)
 
-    return fileCounter, excCounter, faultyFiles, timeS, lineSum, filesizeSumGB
+    return fileCounter, faultyFiles, timeS, lineSum, filesizeSumGB
     
-def printStatistics(fileCounter, excCounter, faultyFiles, timeS, lineSum, filesizeSumGB):
+def printStatistics(fileCounter, faultyFiles, timeS, lineSum, filesizeSumGB):
+    printStatistics.__doc__ = "Prints statistics about the "
     extrPerS = timeS / fileCounter
     txt = "Unzipped {:,} zip files in {} seconds, averaging {} seconds per extraction"
     print(txt.format(fileCounter, timeS, extrPerS))
@@ -116,7 +110,17 @@ def printStatistics(fileCounter, excCounter, faultyFiles, timeS, lineSum, filesi
     averageSize = filesizeSumGB / fileCounter
     print("Average size of file in folder is", averageSize, "GB big")
     exc_text = "Of {} processed files {} or {:.2%} were faulty"
-    excPercentage = excCounter / fileCounter
+
+    def printFaultyFiles(faultyFiles):
+        printFaultyFiles.__doc__ = "Prints the file paths of all files that failed to extract"
+        noFaulty = len(faultyFiles)
+        noFaultyText = "{} faulty files found"
+        print(noFaultyText.format(noFaulty))
+        for item in faultyFiles:
+            print(item)
+
+    printFaultyFiles(faultyFiles)
+    excPercentage = len(faultyFiles) / fileCounter
     print(exc_text.format(fileCounter, excCounter, excPercentage))
     
 print("Directory with zip files")
@@ -125,5 +129,18 @@ zipDirectory = askForFilepath()
 print("Directory to extract to")
 targetDirectory = askForFilepath()
 
+# move faulty files to separate folder
+def moveFaultyFiles(faultyFiles, targetDirectory):
+    path = os.path.join(targetDirectory, "faultyFiles")
+    if not os.path.exists(path):
+        os.mkdir(path)
+
+    for file in faultyFiles:
+        print("Moving",file,"of",len(faultyFiles),"to folder",target)
+        filename = ntpath.basename(file)
+        target = targetDirectory + "/" + filename
+        shutil.move(file, target)
+
 fileCounter, excCounter, faultyFiles, timeS, lineSum, filesizeSumGB = loopExtractFiles(zipDirectory, targetDirectory)
 printStatistics(fileCounter, excCounter, faultyFiles, timeS, lineSum, filesizeSumGB)
+moveFaultyFiles(faultyFiles, targetDirectory)
