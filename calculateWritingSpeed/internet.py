@@ -15,23 +15,22 @@ from datetime import datetime as DateTime, timedelta as TimeDelta # for setting 
 from bs4 import BeautifulSoup # for getting HTML elements of website
 import os
 
+def get_data_path():
+    """
+    Gets the path of the data.txt file
+    :returns: path to file
+    """
+    dir = os.path.dirname(os.path.abspath(__file__))
+    file_name = "data.txt"
+    file_path = os.path.join(dir, file_name)
+    return file_path
+
 def getTextFromURL():
     """
     Gets text from a URL
     :returns: text from URL
     """
     URL = "https://www.lipsum.com/"
-
-    def get_data_path():
-
-        """
-        Gets the path of the data.txt file
-        :returns: path to file
-        """
-        dir = os.path.dirname(os.path.abspath(__file__))
-        file_name = "data.txt"
-        file_path = os.path.join(dir, file_name)
-        return file_path
 
     def is_first_execution():
         """
