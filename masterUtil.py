@@ -3,66 +3,38 @@ Various helper functions
 Created: 25/07/2021
 """
 
-import fileUtil
 import sys
 import os
+import platform
+import string
 
-def print_separator(character, frequency):
+def get_platform():
     """
-    Prints specified character with the given frequency
-    :string character: character to print
-    :int frequency: number of times to print character
+    Gets the operating system currently running
+    :returns: name of operating system
     """
-    sep = ''
-    for i in range(1, frequency):
-        sep += character
-    print(sep)
+    if platform.system() == 'Darwin':
+        return 'Mac OS'
+    return sys.platform
 
-def print_text_ascii(text):
+def create_key_list():
     """
-    Prints text in ASCII Art
-    :string text: string to print
-    https://github.com/pwaller/pyfiglet
+    Creates a list of keys that are used on an European keyboard
     """
-    selectedFont = "Big"
-    print(text, selectedFont)
-    #result = pyfiglet.figlet_format(text, font = selectedFont )
-    #print(result)
+    lowercase = list(string.ascii_lowercase)
+    uppercase = list(string.ascii_uppercase)
+    shift_number_chars = ['!', '"', '§', '$', '&', '/', '(', ')', '=']
+    other_chars = ['+', '*', '~', '#', '\'', '-', '–', ',', ';', '.', ':', '^', '°', '<', '>', '|']
+    key_array = lowercase + uppercase + shift_number_chars + other_chars
+    return key_array
 
-def clean_HTML(text, paragraphs):
+def list_fcts_file():
     """
-    Delete all HTML tags from text
-    :string text: text to clean
-    :boolean paragraphs: if True paragraphs are converted to newlines
-    :returns: cleaned text
+    Returns a list of all top level functions in current file (to be used within target file)
+    :returns: list of functions
     """
-    tag_list = fileUtil.read_file_to_list('html_tags.txt')
-
-    for tag in tag_list:
-        open = '<' + tag + '>'
-        close = '</' + tag + '>'
-        text = text.replace(open, '')
-        if paragraphs == True:
-            if tag == 'p':
-                text = text.replace(close, '\n')
-        else:
-            text = text.replace(close, '')
-    return text
-
-def count_words(text):
-    """
-    Counts the number of words in a given text
-    :string text: text to count
-    :returns: number of words in text
-    :raises Exception: text is empty
-    """
-    if text != "":
-        words = 0
-        # Here we are removing the spaces from start and end,
-        # and breaking every word whenever we encounter a space
-        # and storing them in a list. The len of the list is the
-        # total count of words.
-        words = len(text.strip().split(" "))
-        return words
-    else:
-        raise ValueError("Cannot count words because text is empty.")
+    lst = []
+    for key, value in locals().items():
+        if callable(value) and value.__module__ == __name__:
+            lst.append(key)
+    return lst
