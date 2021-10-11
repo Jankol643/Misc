@@ -4,6 +4,13 @@ Creation 2021/10/03
 Dependencies: mechanize (https://github.com/python-mechanize/mechanize), validators (https://github.com/kvesteri/validators), random_user_agent (https://github.com/Luqman-Ud-Din/random_user_agent/), beautifulsoup4 (https://www.crummy.com/software/BeautifulSoup/)
 """
 
+#Necessary for importing file from parent folder
+import os
+import sys
+currentdir = os.path.dirname(os.path.abspath(__file__))
+parentdir = os.path.dirname(currentdir)
+sys.path.insert(0, parentdir)
+
 import masterUtil
 import fileUtil
 import mechanize # for scraping website for dummy text
@@ -25,29 +32,30 @@ def get_data_path():
     file_path = os.path.join(dir, file_name)
     return file_path
 
-def getTextFromURL():
+def is_first_execution():
+    """
+    Checks if script is executed the first time
+    :returns: true if script is executed the first time
+    """
+    file_path = get_data_path()
+    if os.path.exists(file_path):
+        first_execution = False
+        return False
+    else:
+        first_execution = True
+        return True
+
+def get_text_from_URL():
     """
     Gets text from a URL
     :returns: text from URL
     """
     URL = "https://www.lipsum.com/"
 
-    def is_first_execution():
-        """
-        Checks if script is executed the first time
-        :returns: true if script is executed the first time
-        """
-        file_path = get_data_path()
-        if os.path.exists(file_path):
-            first_execution = False
-            return False
-        else:
-            first_execution = True
-            return True
-
     def check_input(URL):
         """
         Checks if given URL is valid
+        :string URL: url to check
         :returns: true if url is valid
         :raises ValueError: url is invalid
         """
@@ -63,7 +71,7 @@ def getTextFromURL():
         :returns: text from URL
         """
 
-        def set_user_agent():
+        def set_random_user_agent():
             """
             Sets a random user agent
             :returns: random user agent
@@ -72,19 +80,19 @@ def getTextFromURL():
             user_agent_rotator = UserAgent(Popularity = set_popularity, limit = 10000)
             random_user_agent = user_agent_rotator.get_random_user_agent()
             return {'User-Agent': random_user_agent,'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'}
-        
+
         def handle_timeout(timeout):
             """
             Ensures that website is only scraped every timeout seconds
             :int timeout: timeout in seconds
             """
-            # Write last datetime script was run to file
-            if is_first_execution() is True:
-                last_execution = fileUtil.access_file_line(get_data_path(), 1, 'r')
+
+            if is_first_execution() is False:
+                last_execution = fileUtil.access_file_line(get_data_path(), 1, False, 'r')
             else:
                 # create a file
                 now = str(DateTime.now())
-                fileUtil.write_text_to_file(get_data_path(), now, False)
+                fileUtil.access_file_line(get_data_path(), 1, 'w', False, now)
                 last_execution = now
                 
             def raise_exception(last_execution, next_execution, first_execution):
@@ -104,33 +112,32 @@ def getTextFromURL():
             next_execution = last_execution + TimeDelta(seconds = timeout)
         
             #raise_exception(last_execution, next_execution, first_execution)
+
         br = mechanize.Browser()
         #br.set_handle_robots(False)
         #br.set_handle_equiv(False)
-        br.addheaders = [set_user_agent()]
+        br.addheaders = [set_random_user_agent()]
         handle_timeout(60)
         response = br.open(URL)
         
         #Write current time to file
-        dir = os.path.dirname(os.path.abspath(__file__))
-        file_name = "data.txt"
-        file_path = os.path.join(dir, file_name)
-        fileUtil.write_text_to_file(file_path, str(DateTime.now()), False)
+        fileUtil.access_file_line(get_data_path(), 1, 'w', False, str(DateTime.now()))
         
         soup = BeautifulSoup(response.get_data())
         all_paragraphs = soup.find_all('p')
-        print(all_paragraphs)
-        
-        all_paragraphs = all_paragraphs.replace('[', '')
-        all_paragraphs = all_paragraphs.replace(']', '')
+        string = ''
+        for item in all_paragraphs:
+            string += str(item)
+        all_paragraphs = string.replace('[', '')
+        all_paragraphs = string.replace(']', '')
         text = masterUtil.clean_HTML(all_paragraphs, False)
-
-        fileUtil.write_text_to_file(file_path, text, True)
+        fileUtil.access_file_line(get_data_path(), 1, 'w', False, '\n')
+        fileUtil.access_file_line(get_data_path(), 2, 'w', False, text)
+        return text
 
     if is_first_execution() == True:
         if check_input(URL) == True:
             text = scrape_text(URL)
     else:
-        text = fileUtil.access_file_line(get_data_path(), 2, 'r')
-    
+        text = fileUtil.access_file_line(get_data_path(), 2, 'r', False)
     return text
