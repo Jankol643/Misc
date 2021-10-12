@@ -87,8 +87,7 @@ def clean_HTML(text, paragraphs):
     :returns: cleaned text
     """
     currentdir = os.path.dirname(os.path.abspath(__file__))
-    file_name = "html_tags.txt"
-    file_path = os.path.join(currentdir, file_name)
+    file_path = os.path.join(currentdir, "html_tags.txt")
     tag_list = fileUtil.read_file_to_list(file_path)
     for tag in tag_list:
         tag = tag.replace('\n', '')
@@ -110,13 +109,42 @@ def count_words(text):
     :returns: number of words in text
     :raises Exception: text is empty
     """
-    if text != "":
-        words = 0
-        # Here we are removing the spaces from start and end,
-        # and breaking every word whenever we encounter a space
-        # and storing them in a list. The len of the list is the
-        # total count of words.
-        words = len(text.strip().split(" "))
-        return words
-    else:
-        raise ValueError("Cannot count words because text is empty.")
+    words = 0
+    # Here we are removing the spaces from start and end,
+    # and breaking every word whenever we encounter a space
+    # and storing them in a list. The len of the list is the
+    # total count of words.
+    words = len(text.strip().split(" "))
+    return words
+
+def getPermutations(word):
+    """
+    Permutates a word
+    :string word: word to permutate
+    :returns: number of permutations, permutated list of words
+    """
+    if word == "":
+        raise ValueError("Words must have a value")
+    perm = list(itertools.permutations(word))
+    noPerms = len(perm)
+    return noPerms, perm
+
+def check_palindrome(string):
+    """
+    Checks if a string is a palindrome
+    :string string: string to check
+    :returns: True or False
+    """
+    length = len(string)
+    string = string.lower()
+    first = 0
+    last = length - 1
+    status = True
+    while(first < last):
+           if(string[first] == string[last]):
+               first = first + 1
+               last = last - 1
+           else:
+               status = False
+               break
+    return status
