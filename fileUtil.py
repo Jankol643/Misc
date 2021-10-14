@@ -353,3 +353,109 @@ def count_files_directories(gui, recursive, dir_path=''):
                 no_dirs += 1
 
     return no_files, no_dirs
+
+def filetypes_path_dir(gui, recursive, extension_list, dir_path=''):
+    """
+    Gets a list of file paths with a given extension in a directory
+    :boolean gui: if GUI should be used to select folder
+    :boolean recursive: if directory should be searched recursively
+    :list extension_list: list with file extensions
+    :string dir_path: path to folder if no GUI is used
+    :returns: list with file paths, None if empty
+    """
+    if gui == True:
+        directory_path = ask_file_or_directory('directory')
+    else:
+        if dir_path is None:
+            raise ValueError("When using arguments, dir_path must be used")
+        if not os.path.isdir(dir_path):
+            raise ValueError("dir_path must be valid")
+        directory_path = dir_path
+    
+    if recursive not in [True, False]:
+        raise ValueError("Recursive must be True or False")
+
+    path_list = list()
+
+    def split_add(x, extension_list):
+        arr = x.split('/')
+        filename = arr[-1]
+        root, extension = os.path.splitext(filename)
+        extension = extension[1:]
+        if extension in extension_list:
+            path_list.append(x)
+        
+    if recursive == True:
+        if 'scandir' in dir(os):
+            lst = list(os.scandir(directory_path))
+            print(lst)
+            for x in lst:
+                x = x.path
+                x = x.replace('\\', '/')
+                if os.path.isfile(x):
+                    split_add(x, extension_list)
+        else:
+            for root, directories, files in os.walk(directory_path):
+                for file in files:
+                    split_add(file, extension_list)
+    else:
+        lst = list(os.listdir(directory_path))
+        sorted_list = sorted(lst)
+        for x in sorted_list:
+            file_path = os.path.join(directory_path, x)
+            file_path = file_path.replace('\\', '/')
+            if os.path.isfile(file_path):
+                split_add(file_path, extension_list)
+
+    if len(path_list) > 0:
+        return path_list
+    else:
+        return None
+
+def remove_spaces_filename_folder(gui, recursive, dir_path=''):
+    """
+    Removes spaces from filenames in a folder
+    :boolean gui: if GUI should be used to select folder
+    :boolean recursive: if directory should be searched recursively
+    :list extension_list: list with file extensions
+    :string dir_path: path to folder if no GUI is used
+    :returns: list with file paths, None if empty
+    """
+    if gui == True:
+        directory_path = ask_file_or_directory('directory')
+    else:
+        if dir_path is None:
+            raise ValueError("When using arguments, dir_path must be used")
+        if not os.path.isdir(dir_path):
+            raise ValueError("dir_path must be valid")
+        directory_path = dir_path
+    
+    if recursive not in [True, False]:
+        raise ValueError("Recursive must be True or False")
+
+    def remove_spc(x):
+        for char in x:
+            if char == " ":
+                x.replace(char, " ")
+        
+    if recursive == True:
+        if 'scandir' in dir(os):
+            lst = list(os.scandir(directory_path))
+            print(lst)
+            for x in lst:
+                x = x.path
+                x = x.replace('\\', '/')
+                if os.path.isfile(x):
+                    remove_spc(x)
+        else:
+            for root, directories, files in os.walk(directory_path):
+                for file in files:
+                    remove_spc(file)
+    else:
+        lst = list(os.listdir(directory_path))
+        sorted_list = sorted(lst)
+        for x in sorted_list:
+            file_path = os.path.join(directory_path, x)
+            file_path = file_path.replace('\\', '/')
+            if os.path.isfile(file_path):
+                remove_spc(x)
