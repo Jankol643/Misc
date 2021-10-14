@@ -83,3 +83,34 @@ def divide_time(start_time, end_time, number_parts):
         times.append(string)
         new_time = old_time
     return times
+
+def radians_to_degrees(radians):
+    """
+    Takes an angle in radians and returns the corresponding angle in degrees rounded to one decimal place
+    :int radians: angle in radians
+    :returns: angle in degrees
+    """
+    degrees = 0
+    degrees = radians * 180/math.pi
+    degrees = round(degrees, 1)
+    return degrees
+
+def fahrenheit_celsius(degreesF):
+    """
+    Calculates degrees Fahrenheit to degrees Celsius
+    :int degressF: degrees Fahrenheit
+    :returns: degrees Celsius
+    """
+    degreesC = 0
+    degreesC = (degreesF - 32) * 5/9
+    return degreesC
+
+def celsius_fahrenheit(degreesC):
+    """
+    Calculates degrees Celsius to degrees Fahrenheit
+    :int degressC: degrees Celsius
+    :returns: degrees Fahrenheit
+    """
+    degreesF = 0
+    degreesF = degreesC * 5/9 + 32
+    return degreesF
