@@ -148,3 +148,45 @@ def check_palindrome(string):
                status = False
                break
     return status
+
+def encode_morse(string):
+    """
+    31/7 is 3 1/7
+    """
+    # https://edabit.com/challenge/5bYXQfpyoithnQisa
+    #https://www.itu.int/dms_pubrec/itu-r/rec/m/R-REC-M.1677-1-200910-I!!PDF-E.pdf
+    #https://regex101.com/
+    
+    char_to_morse = {
+        'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.',
+        'G': '--.', 'H': '....', 'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..',
+        'M': '--', 'N': '-.', 'O': '---', 'P': '.--.', 'Q': '--.-', 'R': '.-.',
+        'S': '...', 'T': '-', 'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-',
+        'Y': '-.--', 'Z': '--..', ' ': ' ', '0': '-----',
+        '1': '.----', '2': '..---', '3': '...--', '4': '....-', '5': '.....',
+        '6': '-....', '7': '--...', '8': '---..', '9': '----.',
+        '&': '.-...', "'": '.----.', '@': '.--.-.', ')': '-.--.-', '(': '-.--.',
+        ':': '---...', ',': '--..--', '=': '-...-', '!': '-.-.--', '.': '.-.-.-',
+        '-': '-....-', '+': '.-.-.', '"': '.-..-.', '?': '..--..', '/': '-..-.', ' ':' ',
+        '%':'-....-------..-.-----', '‰':'-....-------..-.----------', '*':'-..-'
+    }
+
+    string = string.upper()
+    morse = ""
+
+    for i in range(0, len(string)):
+        char = string[i]
+        if i < len(string)-1:
+            char_post = string[i+1]
+            if char_post == '/' and (int)(char) in range(0,9):
+                morse += char_to_morse['-'] + char_to_morse[char]
+            else:
+                if char in char_to_morse.keys():
+                    morse += char_to_morse[char] + " "
+    if char in char_to_morse.keys():
+        morse += char_to_morse[char] + " "
+    
+    print("Morse code: ", morse)
+
+string = input("Enter string to encode: ")
+encode_morse(string)
