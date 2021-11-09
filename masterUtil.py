@@ -7,6 +7,8 @@ import sys
 import platform
 import string
 import getpass
+from pathlib import Path
+import re
 
 
 def get_platform():
@@ -16,7 +18,7 @@ def get_platform():
     """
     if platform.system() == 'Darwin':
         return 'Mac OS'
-    return sys.platform
+    return platform.system()
 
 
 def get_user():
@@ -117,3 +119,20 @@ def get_active_window_repeatedly():
         if new_window != window and new_window != "":
             print(new_window)
             window = new_window
+
+def sort_logically(result):
+    """
+    Sorts list like 1, 2, 10 instead of 1, 10, 2
+    :list result: list to sort
+    :returns: sorted list
+    """
+    result2 = list()
+    for item in result:
+        path = Path(item)
+        result2.append(path)
+
+    result = sorted(result2, key=lambda x: [
+                    int(k) if k.isdigit() else k for k in re.split('([0-9]+)', x.stem)])
+    for item in result:
+        result[result.index(item)] = str(item)
+    return result
