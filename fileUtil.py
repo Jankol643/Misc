@@ -3,7 +3,6 @@ Various helper functions for file operations
 Creation: 2021/10/03
 """
 
-import stringUtil
 import os
 import sys
 from tkinter import Tk, filedialog # for selecting folder with GUI
@@ -11,6 +10,7 @@ import linecache
 from pathlib import Path
 from itertools import islice
 import datetime
+import random
 
 def file_lines(file_path):
     """
@@ -64,12 +64,11 @@ def ask_file_or_directory(type, action='', extension=''):
         if (action == 'open'):
             var = filedialog.askopenfile(mode ='r', filetypes=['File', extension])
         elif (action == 'save'):
-            var = filedialog.asksaveasfile_path(mode ='w', filetypes=['File', extension])
+            var = filedialog.asksaveasfilename(mode ='w', filetypes=['File', extension])
         else:
             raise ValueError("Action must be open or save.")
     else:
         raise ValueError("Type must be file or directory")
-    stringUtil.print_separator('-', 80)
     return var
 
 def open_file(file_path, mode, empty):
@@ -85,10 +84,10 @@ def open_file(file_path, mode, empty):
     :raises FileNotFoundError: file cannot be found
     :raises Exception: file_path is not a file
     """
+    allowed_modes = ['r', 'w', 'w+', 'x', 'x+', 'a', 'a+', 'b', 't']
+    if mode not in allowed_modes:
+        raise ValueError("Mode is not allowed")
     if os.path.isfile(file_path):
-        allowed_modes = ['r', 'w', 'w+', 'x', 'x+', 'a', 'a+', 'b', 't']
-        if mode not in allowed_modes:
-            raise ValueError("Mode is not allowed")
         if (empty == False and get_filesize(file_path) == 0):
             raise EOFError
         try:
@@ -144,10 +143,11 @@ def print_filesize(file_path, unit="all"):
         print("Filesize MB: " + filesize_MB)
         print("Filesize GB: " + filesize_GB)
 
-def read_file_to_list(file_path):
+def read_file_to_list(file_path, no_newlines):
     """
     Reads a file to a list
     :string file_path: name of file
+    :boolean no_newlines: True if newline character should be stripped from list
     :returns: list with file contents
     :raises Exception: file is too large for a single list
     """
@@ -157,7 +157,11 @@ def read_file_to_list(file_path):
         list1 = list()
         file = open_file(file_path, 'r', False)
         for line in file:
-            list1.append(line)
+            if no_newlines == True:
+                line = line.rstrip('\n')
+                list1.append(line)
+            else:
+                list1.append(line)
         file.close()
         return list1
 
@@ -224,27 +228,34 @@ def access_file_line(file_path, line_number, action, big_file, empty, text = '')
         else:
             raise ValueError("Action must be 'r' or 'w'.")
 
-def create_file_folder(folder_path, n=0, from_file=False, namepath=None):
+def create_file_folder(gui, n=0, file_extensions=['txt'], from_file=False, namepath=None, folder_path=None):
     """
     Creates files in given folder
-    :string folder_path: directory in which to create files
+    :boolean gui: if gui should be used to select folder
     :int n: number of files to create
+    :list file_extensions: list of file extensions to choose from (without dot)
     :boolean from_file: if filenames should be read from file
     :string namepath: path to file with filenames
+    :string folder_path: directory in which to create files (if no gui is used)
     """
-    if not (os.path.isdir(folder_path)):
-        try:
-            os.makedirs(folder_path)
-        except OSError:
-            raise OSError
-    
+
     if (from_file not in [True, False]):
         raise ValueError("from_file must be true or false")
     if (n == 0 and from_file == False):
         raise ValueError("n or from_file must be specified")
     if (from_file == True and namepath == None):
         raise ValueError("Namepath must be specified when using from_file")
-
+    if (gui == False and folder_path == None):
+        raise ValueError("When gui is not used, path to folder must be specified")
+    
+    if (gui == True):
+        folder_path = ask_file_or_directory('directory')
+    
+    if not (os.path.isdir(folder_path)):
+        try:
+            os.makedirs(folder_path)
+        except OSError:
+            raise OSError
     errors = list()
 
     if from_file == True:
@@ -262,7 +273,8 @@ def create_file_folder(folder_path, n=0, from_file=False, namepath=None):
 
     if from_file == False:
         for i in range(0, n):
-            file_name = str(i) + ".txt"
+            file_ext = random.choice(file_extensions)
+            file_name = str(i) + '.' + file_ext
             final_path = os.path.join(folder_path, file_name)
             try:
                 fp = open(final_path, 'x')
@@ -403,6 +415,13 @@ def filetypes_path_dir(gui, recursive, extension_list, dir_path=''):
     path_list = list()
 
     def split_add(x, extension_list):
+        """
+        Checks if the extension of x is in the extension list
+        if true, append to result
+        if extension list is empty, append to result
+        :string x: path of file to check
+        :list extension_list: list with file extensions
+        """
         if get_filesize(x) < 0:
             pass
         else:
