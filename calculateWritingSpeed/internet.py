@@ -17,7 +17,6 @@ import mechanize # for scraping website for dummy text
 #import validators # for input check
 #for random user agent when scraping website
 from random_user_agent.user_agent import UserAgent
-from random_user_agent.params import Popularity
 from datetime import datetime as DateTime, timedelta as TimeDelta # for setting timeout
 from bs4 import BeautifulSoup # for getting HTML elements of website
 import os
