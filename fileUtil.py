@@ -11,6 +11,7 @@ from pathlib import Path
 from itertools import islice
 import datetime
 import random
+import re
 
 def file_lines(file_path):
     """
@@ -611,3 +612,25 @@ def write_shebang(file_path, version):
         for line in lines:
             file.write(line)
     print("Successfully written shebang to file.")
+
+def uncommented_imports(file_path):
+    """
+    Print line number and imports if they are not commented
+    :string file_path: file to search
+    """
+    file_lines = list()
+    uncommented_imports = dict()
+    regex = re.compile('# *\w+') # matches #, zero or more spaces and characters thereafter
+    with open(file_path, 'r') as f:
+        for line in f:
+            line = line.strip('\n')
+            file_lines.append(line)
+    for line in file_lines:
+        match = re.search(regex, line)
+        if 'import' in line and match is None:
+            index = file_lines.index(line) + 1
+            uncommented_imports.update({index: line})
+    if len(uncommented_imports) > 0:
+        print("Uncommented imports:")
+        for key, value in uncommented_imports.items():
+            print(str(key) + ":" + value)
