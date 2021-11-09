@@ -569,3 +569,45 @@ def last_modified_files(n):
     sorted_list = sorted(last_modified, reverse = True)
     result = sorted_list[0:n] # returns first n elements
     return result
+
+def prepend_file(file_path, string):
+    """
+    Prepends a file with a given string
+    :str filepath: file to prepend to
+    :str string: string to prepend
+    """
+    print("Writing shebang to file" + file_path)
+    lines = list()
+    with open(file_path, 'r') as file:
+        for line in file:
+            lines.append(line)
+    string = string + '\n'
+    lines.insert(0, string)
+    with open(file_path, 'w') as file:
+        for line in lines:
+            file.write(line)
+
+def write_shebang(file_path, version):
+    """
+    Prepends file with python shebang for the given version
+    :string file_path: path to python file
+    :int version: python version of file, 2 or 3
+    """
+    shebang = '#!/usr/bin/env python' + str(version)
+    # delete wrong shebangs
+    lines = list()
+    with open(file_path, 'r') as file:
+        for line in file:
+            lines.append(line)
+    shebang_newline = shebang + '\n'
+    for line in lines:
+        index = lines.index(line)
+        if index < 10:
+            if line.startswith('#!') and line != shebang_newline:
+                lines.remove(line)
+    lines.insert(0, shebang_newline) # insert correct shebang
+    
+    with open(file_path, 'w') as file:
+        for line in lines:
+            file.write(line)
+    print("Successfully written shebang to file.")
