@@ -5,13 +5,14 @@ Creation: 2021/10/03
 
 import os
 import sys
-from tkinter import Tk, filedialog # for selecting folder with GUI
+from tkinter import Tk, filedialog  # for selecting folder with GUI
 import linecache
 from pathlib import Path
 from itertools import islice
 import datetime
 import random
 import re
+
 
 def file_lines(file_path):
     """
@@ -33,6 +34,7 @@ def file_lines(file_path):
     else:
         return 0
 
+
 def get_filesize(file_path):
     """
     Computes the size of a file in bytes
@@ -46,6 +48,7 @@ def get_filesize(file_path):
     else:
         raise FileNotFoundError
 
+
 def ask_file_or_directory(type, action='', extension=''):
     """
     Asks the user to specify a file or a directory using a GUI
@@ -55,22 +58,26 @@ def ask_file_or_directory(type, action='', extension=''):
     :return var: path to file or directory
     :raises ValueError: wrong type or action
     """
-    root = Tk() # pointing root to Tk() to use it as Tk() in program.
-    root.withdraw() # Hides small tkinter window.
-    root.attributes('-topmost', True) # Opened windows will be active above all windows despite of selection.
+    root = Tk()  # pointing root to Tk() to use it as Tk() in program.
+    root.withdraw()  # Hides small tkinter window.
+    # Opened windows will be active above all windows despite of selection.
+    root.attributes('-topmost', True)
     if (type == 'directory'):
-        var = filedialog.askdirectory() # Returns opened path as str
+        var = filedialog.askdirectory()  # Returns opened path as str
     elif (type == 'file'):
         extension = '*.' + extension
         if (action == 'open'):
-            var = filedialog.askopenfile(mode ='r', filetypes=['File', extension])
+            var = filedialog.askopenfile(
+                mode='r', filetypes=['File', extension])
         elif (action == 'save'):
-            var = filedialog.asksaveasfilename(mode ='w', filetypes=['File', extension])
+            var = filedialog.asksaveasfilename(
+                mode='w', filetypes=['File', extension])
         else:
             raise ValueError("Action must be open or save.")
     else:
         raise ValueError("Type must be file or directory")
     return var
+
 
 def open_file(file_path, mode, empty):
     """
@@ -105,6 +112,7 @@ def open_file(file_path, mode, empty):
             file = open(file_path, mode)
             return file
 
+
 def check_file_type(file_path, extension):
     """
     Checks if the file exists and is a non-empty file with the specified extension
@@ -125,6 +133,7 @@ def check_file_type(file_path, extension):
     else:
         raise FileNotFoundError
 
+
 def print_filesize(file_path, unit="all"):
     """
     Displays file sizes of a file in the given unit (Bytes, Megabytes, Gigabytes)
@@ -143,6 +152,7 @@ def print_filesize(file_path, unit="all"):
         print("Filesize B: " + filesize_B)
         print("Filesize MB: " + filesize_MB)
         print("Filesize GB: " + filesize_GB)
+
 
 def read_file_to_list(file_path, no_newlines):
     """
@@ -166,6 +176,7 @@ def read_file_to_list(file_path, no_newlines):
         file.close()
         return list1
 
+
 def count_words_file(file_path):
     """
     Counts number of words in a file
@@ -179,7 +190,8 @@ def count_words_file(file_path):
     file.close()
     return count
 
-def access_file_line(file_path, line_number, action, big_file, empty, text = ''):
+
+def access_file_line(file_path, line_number, action, big_file, empty, text=''):
     """
     Performs an action at the specified line of the specified file 
     :string file_path: name of file
@@ -196,7 +208,7 @@ def access_file_line(file_path, line_number, action, big_file, empty, text = '')
         raise ValueError("Input not correct.")
     if action == 'r' and line_number > file_lines(file_path):
         raise ValueError("File does not have that many lines.")
-    
+
     text = str(text)
     line_count = 1
     if big_file == True:
@@ -224,10 +236,11 @@ def access_file_line(file_path, line_number, action, big_file, empty, text = '')
                     if line_count == line_number:
                         line = text
                 file.close()
-            else: # only one line in file
+            else:  # only one line in file
                 file.write(text)
         else:
             raise ValueError("Action must be 'r' or 'w'.")
+
 
 def create_file_folder(gui, n=0, file_extensions=['txt'], from_file=False, namepath=None, folder_path=None):
     """
@@ -247,11 +260,12 @@ def create_file_folder(gui, n=0, file_extensions=['txt'], from_file=False, namep
     if (from_file == True and namepath == None):
         raise ValueError("Namepath must be specified when using from_file")
     if (gui == False and folder_path == None):
-        raise ValueError("When gui is not used, path to folder must be specified")
-    
+        raise ValueError(
+            "When gui is not used, path to folder must be specified")
+
     if (gui == True):
         folder_path = ask_file_or_directory('directory')
-    
+
     if not (os.path.isdir(folder_path)):
         try:
             os.makedirs(folder_path)
@@ -264,7 +278,7 @@ def create_file_folder(gui, n=0, file_extensions=['txt'], from_file=False, namep
         for name in filelist:
             name = name.strip()
             final_path = os.path.join(folder_path, name)
-            if "." not in name: # file extension missing
+            if "." not in name:  # file extension missing
                 errors.append(final_path)
             try:
                 fp = open(final_path, 'x')
@@ -287,7 +301,8 @@ def create_file_folder(gui, n=0, file_extensions=['txt'], from_file=False, namep
         print("Errors occured.")
         print(errors)
 
-def get_dir_size(start_path = '.'):
+
+def get_dir_size(start_path='.'):
     """
     Prints the total size of all files and folders in a directory
     :string start_path: directory to search (default: current directory)
@@ -297,13 +312,13 @@ def get_dir_size(start_path = '.'):
     if 'scandir' in dir(os):
         # using fast 'os.scandir' method (new in version 3.5)
         for entry in os.scandir(start_path):
-            if entry.is_dir(follow_symlinks = False):
+            if entry.is_dir(follow_symlinks=False):
                 total_size += get_dir_size(entry.path)
-            elif entry.is_file(follow_symlinks = False):
+            elif entry.is_file(follow_symlinks=False):
                 total_size += entry.stat().st_size
     else:
         # using slow, but compatible 'os.listdir' method
-        print (start_path)
+        print(start_path)
         for entry in os.listdir(start_path):
             full_path = os.path.abspath(os.path.join(start_path, entry))
             if os.path.isdir(full_path):
@@ -311,6 +326,7 @@ def get_dir_size(start_path = '.'):
             elif os.path.isfile(full_path):
                 total_size += os.path.getsize(full_path)
     return total_size
+
 
 def filesizes_dir():
     """
@@ -326,13 +342,15 @@ def filesizes_dir():
             path = entry.path()
             no_files += 1
             if (no_files > sys.maxsize/8):
-                raise Exception("Too many files in chosen directory. Maximum is " + sys.maxsize/8)
+                raise Exception(
+                    "Too many files in chosen directory. Maximum is " + sys.maxsize/8)
             files_list.append(path)
     else:
         for entry in os.listdir(directory_path):
             full_path = os.path.abspath((os.path.join(directory_path, entry)))
             if (no_files > sys.maxsize/8):
-                raise Exception("Too many files in chosen directory. Maximum is " + sys.maxsize/8)
+                raise Exception(
+                    "Too many files in chosen directory. Maximum is " + sys.maxsize/8)
             files_list.append(full_path)
 
     # Create a dict of files in directory along with the size
@@ -343,6 +361,7 @@ def filesizes_dir():
         filesize_dict[file] = filesize
 
     return filesize_dict
+
 
 def count_files_directories(gui, recursive, dir_path=''):
     """
@@ -362,7 +381,7 @@ def count_files_directories(gui, recursive, dir_path=''):
         dir = dir_path
     if recursive not in [True, False]:
         raise ValueError("Recursive must be True or False")
-    
+
     no_files = 0
     no_dirs = 0
 
@@ -392,6 +411,7 @@ def count_files_directories(gui, recursive, dir_path=''):
 
     return no_files, no_dirs
 
+
 def filetypes_path_dir(gui, recursive, extension_list, dir_path=''):
     """
     Gets a list of file paths of non-empty files with a given extension in a directory
@@ -409,7 +429,7 @@ def filetypes_path_dir(gui, recursive, extension_list, dir_path=''):
         if not os.path.isdir(dir_path):
             raise ValueError("dir_path must be valid")
         directory_path = dir_path
-    
+
     if recursive not in [True, False]:
         raise ValueError("Recursive must be True or False")
 
@@ -433,9 +453,9 @@ def filetypes_path_dir(gui, recursive, extension_list, dir_path=''):
             if len(extension_list) > 0:
                 if extension in extension_list:
                     path_list.append(x)
-            else: # extension list is empty
+            else:  # extension list is empty
                 path_list.append(x)
-        
+
     if recursive == True:
         if 'scandir' in dir(os):
             lst = list(os.scandir(directory_path))
@@ -463,6 +483,7 @@ def filetypes_path_dir(gui, recursive, extension_list, dir_path=''):
 
     return path_list
 
+
 def remove_spaces_filename_folder(gui, recursive, dir_path=''):
     """
     Removes spaces from filenames in a folder
@@ -480,7 +501,7 @@ def remove_spaces_filename_folder(gui, recursive, dir_path=''):
         if not os.path.isdir(dir_path):
             raise ValueError("dir_path must be valid")
         directory_path = dir_path
-    
+
     if recursive not in [True, False]:
         raise ValueError("Recursive must be True or False")
 
@@ -488,7 +509,7 @@ def remove_spaces_filename_folder(gui, recursive, dir_path=''):
         for char in x:
             if char == " ":
                 x.replace(char, " ")
-        
+
     if recursive == True:
         if 'scandir' in dir(os):
             lst = list(os.scandir(directory_path))
@@ -510,7 +531,9 @@ def remove_spaces_filename_folder(gui, recursive, dir_path=''):
             if os.path.isfile(file_path):
                 remove_spc(x)
 
-#https://stackoverflow.com/a/59109706
+# https://stackoverflow.com/a/59109706
+
+
 def tree(level=-1, limit_to_directories=False, length_limit=1000):
     """
     Given a directory Path object print a visual tree structure
@@ -518,41 +541,43 @@ def tree(level=-1, limit_to_directories=False, length_limit=1000):
     :boolean limit_to_directories: if true only directories are shown
     :int length_limit: limit iteration so editor is not full of text
     """
-    space =  '    '
+    space = '    '
     branch = '│   '
-    tee =    '├── '
-    last =   '└── '
+    tee = '├── '
+    last = '└── '
     dir_path = ask_file_or_directory('directory')
-    dir_path = Path(dir_path) # accept string coerceable to Path
+    dir_path = Path(dir_path)  # accept string coerceable to Path
     files = 0
     directories = 0
 
-    def inner(dir_path: Path, prefix: str='', level=-1):
+    def inner(dir_path: Path, prefix: str = '', level=-1):
         nonlocal files, directories
-        if not level: 
-            return # 0, stop iterating
+        if not level:
+            return  # 0, stop iterating
         if limit_to_directories:
             contents = [d for d in dir_path.iterdir() if d.is_dir()]
-        else: 
+        else:
             contents = list(dir_path.iterdir())
         pointers = [tee] * (len(contents) - 1) + [last]
         for pointer, path in zip(pointers, contents):
             if path.is_dir():
                 yield prefix + pointer + path.name
                 directories += 1
-                extension = branch if pointer == tee else space 
+                extension = branch if pointer == tee else space
                 yield from inner(path, prefix=prefix+extension, level=level-1)
             elif not limit_to_directories:
                 yield prefix + pointer + path.name
                 files += 1
-    
+
     print(dir_path.name)
     iterator = inner(dir_path, level=level)
     for line in islice(iterator, length_limit):
         print(line)
     if next(iterator, None):
         print(f'... length_limit, {length_limit}, reached, counted:')
-    print(f'\n{directories} directories' + (f', {files} files' if files else ''))
+    print(f'\n{directories} directories' +
+          (f', {files} files' if files else ''))
+
 
 def last_modified_files(n):
     """
@@ -566,10 +591,11 @@ def last_modified_files(n):
         time = os.stat(file_list[i]).st_mtime
         dt = datetime.datetime.fromtimestamp(time)
         last_modified.append(dt)
-    
-    sorted_list = sorted(last_modified, reverse = True)
-    result = sorted_list[0:n] # returns first n elements
+
+    sorted_list = sorted(last_modified, reverse=True)
+    result = sorted_list[0:n]  # returns first n elements
     return result
+
 
 def prepend_file(file_path, string):
     """
@@ -587,6 +613,7 @@ def prepend_file(file_path, string):
     with open(file_path, 'w') as file:
         for line in lines:
             file.write(line)
+
 
 def write_shebang(file_path, version):
     """
@@ -606,12 +633,13 @@ def write_shebang(file_path, version):
         if index < 10:
             if line.startswith('#!') and line != shebang_newline:
                 lines.remove(line)
-    lines.insert(0, shebang_newline) # insert correct shebang
-    
+    lines.insert(0, shebang_newline)  # insert correct shebang
+
     with open(file_path, 'w') as file:
         for line in lines:
             file.write(line)
     print("Successfully written shebang to file.")
+
 
 def uncommented_imports(file_path):
     """
@@ -620,7 +648,8 @@ def uncommented_imports(file_path):
     """
     file_lines = list()
     uncommented_imports = dict()
-    regex = re.compile('# *\w+') # matches #, zero or more spaces and characters thereafter
+    # matches #, zero or more spaces and characters thereafter
+    regex = re.compile('# *\w+')
     with open(file_path, 'r') as f:
         for line in f:
             line = line.strip('\n')
@@ -634,3 +663,36 @@ def uncommented_imports(file_path):
         print("Uncommented imports:")
         for key, value in uncommented_imports.items():
             print(str(key) + ":" + value)
+
+
+def relative_to_absolute_path(file_path):
+    """
+    Transforms a relative path to an absolute path
+
+    :param file_path: relative path to convert
+    :type file_path: string
+    :return: absolute path
+    :rtype: string
+    """
+    final_path = ''
+    current_path = os.path.dirname(os.path.realpath(__file__))
+    splitted = current_path.split(os.path.sep)
+    no_points = file_path.count('..')
+    count = len(splitted) - no_points
+    splitted = splitted[:count]
+    splitted_filepath = file_path.split(os.path.sep)
+    filename = splitted_filepath[-1]
+    regexPattern = re.compile('(?<!\.)\.(?!\.)')  # matches single dot
+    no_points_filename = len(regexPattern.findall(filename))
+    no_single_points = len(regexPattern.findall(file_path))
+    count = no_points + no_single_points - no_points_filename
+    splitted_filepath = splitted_filepath[count:]
+    final_path_list = splitted + splitted_filepath
+    string = ''
+    for elem in final_path_list:
+        if final_path_list.index(elem) == len(final_path_list)-1:
+            string += elem
+        else:
+            string += elem + os.path.sep
+    final_path = string
+    return final_path
