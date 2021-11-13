@@ -8,24 +8,36 @@ FOLDER = os.path.dirname(os.path.abspath(__file__))
 DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 REPO_PATH = 'https://github.com/Jankol643/exercises'
 
+repo = git.Repo(REPO_PATH)
 untracked_files = repo.untracked_files # list of untracked files
 
-def get_commits():
+def get_commits(repo):
     """
-    Returns a list of all commits in the repository
+    Get commits from specified repo
+
+    :param repo: repository to get commits from
+    :type repo: Repo
+    :return: list of commits
+    :rtype: list
     """
-    repo = git.Repo(REPO_PATH)
+    
     # get all commits reachable from "HEAD"
     commits = list(repo.iter_commits('HEAD'))
     return commits
 
-def commit_per_period(period):
+def commit_per_period(repo, period):
     """
-    Calculates number of commits per week and per month
-    :returns: number of commits per week or per month
+    Calculate number of commits for a repository in a period
+
+    :param repo: repository to analyze
+    :type repo: Repo
+    :param period: period to calculate commits from
+    :type period: string
+    :return: number of commits in given period
+    :rtype: float
     """
     date_list = list()
-    commits = get_commits()
+    commits = get_commits(repo)
     for commit in commits:
         date = commit.commited_date
         date = datetime.fromtimestamp(date)
@@ -51,5 +63,5 @@ def commit_per_period(period):
         commits_per_month = months/no_commits
         return commits_per_month
 
-result = commit_per_period('week')
+result = commit_per_period(repo, 'week')
 print(result)
