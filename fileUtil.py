@@ -5,7 +5,9 @@ Creation: 2021/10/03
 
 import os
 import sys
-from tkinter import Tk, filedialog  # for selecting folder with GUI
+
+import masterUtil
+
 import linecache
 from pathlib import Path
 from itertools import islice
@@ -47,36 +49,6 @@ def get_filesize(file_path):
         return filesize_B
     else:
         raise FileNotFoundError
-
-
-def ask_file_or_directory(type, action='', extension=''):
-    """
-    Asks the user to specify a file or a directory using a GUI
-    :string type: type to do action on (file or directory)
-    :string action: action to perform (open or save)
-    :string extension: extension of file(s) to open
-    :return var: path to file or directory
-    :raises ValueError: wrong type or action
-    """
-    root = Tk()  # pointing root to Tk() to use it as Tk() in program.
-    root.withdraw()  # Hides small tkinter window.
-    # Opened windows will be active above all windows despite of selection.
-    root.attributes('-topmost', True)
-    if (type == 'directory'):
-        var = filedialog.askdirectory()  # Returns opened path as str
-    elif (type == 'file'):
-        extension = '*.' + extension
-        if (action == 'open'):
-            var = filedialog.askopenfile(
-                mode='r', filetypes=['File', extension])
-        elif (action == 'save'):
-            var = filedialog.asksaveasfilename(
-                mode='w', filetypes=['File', extension])
-        else:
-            raise ValueError("Action must be open or save.")
-    else:
-        raise ValueError("Type must be file or directory")
-    return var
 
 
 def open_file(file_path, mode, empty):
@@ -264,7 +236,7 @@ def create_file_folder(gui, n=0, file_extensions=['txt'], from_file=False, namep
             "When gui is not used, path to folder must be specified")
 
     if (gui == True):
-        folder_path = ask_file_or_directory('directory')
+        folder_path = masterUtil.ask_file_or_directory('directory')
 
     if not (os.path.isdir(folder_path)):
         try:
@@ -335,7 +307,7 @@ def filesizes_dir():
     """
     files_list = list()
     no_files = 0
-    directory_path = ask_file_or_directory('directory')
+    directory_path = masterUtil.ask_file_or_directory('directory')
 
     if 'scandir' in dir(os):
         for entry in os.scandir(directory_path):
@@ -372,7 +344,7 @@ def count_files_directories(gui, recursive, dir_path=''):
     :returns: number of files and directories
     """
     if gui == True:
-        dir = ask_file_or_directory('directory')
+        dir = masterUtil.ask_file_or_directory('directory')
     else:
         if dir_path == '':
             raise ValueError("When using arguments, dir_path must be used")
@@ -422,7 +394,7 @@ def filetypes_path_dir(gui, recursive, extension_list, dir_path=''):
     :returns: list with file paths
     """
     if gui == True:
-        directory_path = ask_file_or_directory('directory')
+        directory_path = masterUtil.ask_file_or_directory('directory')
     else:
         if dir_path is None:
             raise ValueError("When using arguments, dir_path must be used")
@@ -484,17 +456,25 @@ def filetypes_path_dir(gui, recursive, extension_list, dir_path=''):
     return path_list
 
 
-def remove_spaces_filename_folder(gui, recursive, dir_path=''):
+def remove_characters_filename_folder(gui, recursive, chars_to_remove, dir_path=''):
     """
-    Removes spaces from filenames in a folder
-    :boolean gui: if GUI should be used to select folder
-    :boolean recursive: if directory should be searched recursively
-    :list extension_list: list with file extensions
-    :string dir_path: path to folder if no GUI is used
-    :returns: list with file paths, None if empty
+    Remove characters from filenames in a folder
+
+    :param gui: if a GUI should be used to select the folder
+    :type gui: boolean
+    :param recursive: search for file recursively
+    :type recursive: boolean
+    :param chars_to_remove: list of characters to remove the
+    :type chars_to_remove: list
+    :param dir_path: path to folder to clean if no GUI is used, defaults to ''
+    :type dir_path: str, optional
+    :raises ValueError: if no GUI is used and dir_path is empty
+    :raises ValueError: if dir_path is invalid
+    :raises ValueError: if recursive is not a boolean
+    :raises ValueError: if list of characters is empty or contains whitespaces
     """
     if gui == True:
-        directory_path = ask_file_or_directory('directory')
+        directory_path = masterUtil.ask_file_or_directory('directory')
     else:
         if dir_path is None:
             raise ValueError("When using arguments, dir_path must be used")
@@ -504,34 +484,32 @@ def remove_spaces_filename_folder(gui, recursive, dir_path=''):
 
     if recursive not in [True, False]:
         raise ValueError("Recursive must be True or False")
+    if (len(chars_to_remove) < 1) or masterUtil.check_list_empty(chars_to_remove) is True:
+        raise ValueError("List is empty or contains whitespaces.")
 
-    def remove_spc(x):
+    def remove_char(x):
         for char in x:
-            if char == " ":
-                x.replace(char, " ")
+            if char in chars_to_remove:
+                x.replace(char, '')
 
     if recursive == True:
         if 'scandir' in dir(os):
             lst = list(os.scandir(directory_path))
             for x in lst:
                 x = x.path
-                x = x.replace('\\', '/')
                 if os.path.isfile(x):
-                    remove_spc(x)
+                    remove_char(x)
         else:
-            for root, directories, files in os.walk(directory_path):
+            for _, _, files in os.walk(directory_path):
                 for file in files:
-                    remove_spc(file)
+                    remove_char(file)
     else:
         lst = list(os.listdir(directory_path))
         sorted_list = sorted(lst)
         for x in sorted_list:
             file_path = os.path.join(directory_path, x)
-            file_path = file_path.replace('\\', '/')
             if os.path.isfile(file_path):
-                remove_spc(x)
-
-# https://stackoverflow.com/a/59109706
+                remove_char(x)
 
 
 def tree(level=-1, limit_to_directories=False, length_limit=1000):
@@ -545,7 +523,7 @@ def tree(level=-1, limit_to_directories=False, length_limit=1000):
     branch = '│   '
     tee = '├── '
     last = '└── '
-    dir_path = ask_file_or_directory('directory')
+    dir_path = masterUtil.ask_file_or_directory('directory')
     dir_path = Path(dir_path)  # accept string coerceable to Path
     files = 0
     directories = 0
@@ -603,7 +581,6 @@ def prepend_file(file_path, string):
     :str filepath: file to prepend to
     :str string: string to prepend
     """
-    print("Writing shebang to file" + file_path)
     lines = list()
     with open(file_path, 'r') as file:
         for line in file:
@@ -621,6 +598,7 @@ def write_shebang(file_path, version):
     :string file_path: path to python file
     :int version: python version of file, 2 or 3
     """
+    print("Writing shebang to file" + file_path)
     shebang = '#!/usr/bin/env python' + str(version)
     # delete wrong shebangs
     lines = list()
