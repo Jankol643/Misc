@@ -1,108 +1,146 @@
 # Cleans special files
 
-# Necessary imports
-#import pyfiglet # for header
-import sys # for getting maximum length of list
-import os # for file checks
-import subprocess # to calculate word count
-#from tqdm import tqdm # needed for progress bar tqdm
-import shutil # for copying files
-from collections import OrderedDict # for Ordered dictionary
-import operator # for sorting dict
+# import pyfiglet # for header
+import os  # for file checks
+# from tqdm import tqdm # needed for progress bar tqdm
+import shutil  # for copying files
+import operator  # for sorting dict
 
 import masterUtil
+import stringUtil  # for printing separator
+import fileUtil  # for counting files in directory
 
-# Setting standard variables
-keepHashes = 1
+WITH_HASHES = True
+WITH_COUNT = True
 
-filename = masterUtil.askForFileOrDirectory('file', 'open', 'txt')
-masterUtil.getSize(filename)
+filename = masterUtil.ask_file_or_directory('file', 'open', 'txt')
 
-def processFolder(outputdir, filepath, listFile, dicFile, withCount, counter, noOfFiles):
-    
-    def moveFiles(filepath, workdir, counter):
-        # Loop through every file in directory
-        for filename in os.listdir(filepath):
-            counter += 1
-            print("Copying file", counter, "of", noOfFiles, "called", filename)
-            shutil.copy(filepath, workdir)
-    
-    def processFiles(workdir, counter):
-        lineList = list()
-        for filename in os.listdir(workdir):
-            counter += 1
-            print("Processing file", counter, "of", noOfFiles, "called", filename)
-            filename = workdir + "/" + filename
-            with open(filename, "r") as file:
-                # Read each line of the file
-                for line in file:
-                    cleanedLine = cleanLine(line)
-                    lineList.append(cleanedLine)
-                    file.write(cleanedLine)
-        return lineList
 
-    def cleanLine(line):
-        splitString = line.split(" ")[1]
-        if (keepHashes == 0):
-            cleanedLine = splitString.split(":")[1]
-            return cleanedLine
-        else :
-            cleanedLine = splitString
-            return cleanedLine
-    
-    def writeListToFile(lineList, folderPath, listFile):
-        print("Writing concatenated list to file")
-        listFile = folderPath + "/" + listFile
-        print("File", listFile)
-        with open(listFile, 'w') as f: # creates the file if it does not exist
-            for item in lineList:
-                f.write("%s\n" % item)
-        masterUtil.printSeparator
-        return listFile
-        
-    def listToDict(lineList):
-        print("Converting list to dictionary")
-        freqDict = {} # Creating an empty dictionary 
-        for item in lineList:
-            if (item in freqDict):
-                freqDict[item] += 1
-            else:
-                freqDict[item] = 1
-        masterUtil.printSeparator
-        return freqDict
-    
-    def sortDictByFreq(freqDict):
-        print("Sorting dict by frequency")
-        sortedDict = dict( sorted(freqDict.items(), key=operator.itemgetter(1),reverse=True))
-        masterUtil.printSeparator
-        return sortedDict
-        
-    def writeDicToFile(sortedDict, folderPath, dicFile, withCount):
-        print("Writing dictionary to file")
-        dicFile = folderPath + "/" + dicFile
-        print("File", dicFile)
-        with open(dicFile, "w") as f:
-            if (withCount == 1):
-                for key, value in sortedDict.items():
-                    f.write(str(key))
-                    f.write(" ")
-                    f.write(str(value))
-                    f.write("\n")
-            else:
-                for key in sortedDict:
-                    f.write(str(key))
-        
-        masterUtil.printSeparator
-        return dicFile
+def moveFiles(filepath, workdir, no_files):
+    """
+    Copies files to temporary working directory
 
-    workdir = masterUtil.masterUtil.askForFileOrDirectory('folder')
-    moveFiles(filepath, workdir, counter)
-    lineList = processFiles(workdir, counter)
-    folderPath = masterUtil.askForFileOrDirectory('folder', '', "")
-    listFile = masterUtil.askForFileOrDirectory('file', 'save', 'txt')
-    writeListToFile(lineList, folderPath, listFile)
-    freqDict = listToDict(lineList)
-    sortedDict = sortDictByFreq(freqDict)
-    folderPath = masterUtil.askForFileOrDirectory('folder', '', '')
-    dicFile = masterUtil.askForFileOrDirectory('file', 'save', 'txt')
-    file = writeDicToFile(sortedDict, folderPath, dicFile, 1)
+    :param filepath: original file path
+    :type filepath: string
+    :param workdir: path to working directory
+    :type workdir: string
+    :param no_files: number of files to copy
+    :type no_files: int
+    """
+    # Loop through every file in directory
+    counter = 0
+    for filename in os.listdir(filepath):
+        counter += 1
+        print("Copying file", counter, "of", no_files, "called", filename)
+        shutil.copy(filepath, workdir)
+
+
+def processFiles(workdir):
+    """
+    Cleans all files in the working directory
+
+    :param workdir: path to directory of files to process
+    :type workdir: string
+    :return: cleaned lines
+    :rtype: list
+    """
+    line_list = list()
+    counter = 0
+    for filename in os.listdir(workdir):
+        counter += 1
+        print("Processing file", counter, "of", no_files, "called", filename)
+        filename = workdir + os.path.sep + filename
+        with open(filename, "r") as file:
+            # Read each line of the file
+            for line in file:
+                cleaned_line = cleanLine(line)
+                line_list.append(cleaned_line)
+                file.write(cleaned_line)
+    return line_list
+
+
+def cleanLine(line):
+    """
+    Cleans a line
+
+    :param line: line to clean
+    :type line: string
+    :return: cleaned line
+    :rtype: string
+    """
+    split_string = line.split(" ")[1]
+    if (WITH_HASHES is False):
+        cleaned_line = split_string
+    else:
+        cleaned_line = split_string.split(":")[1]
+    return cleaned_line
+
+
+def write_list_to_file(line_list, folder_path, list_file):
+    print("Writing concatenated list to file")
+    list_file = folder_path + os.path.sep + list_file
+    print("File", list_file)
+    with open(list_file, 'w') as f:  # creates the file if it does not exist
+        for item in line_list:
+            f.write("%s\n" % item)
+    stringUtil.print_separator('-', 80)
+    return list_file
+
+
+def list_to_dict(line_list):
+    """
+    Deduplicates a list and converts it to a dictionary with occurrences of list items
+
+    :param line_list: list with duplicates
+    :type line_list: list
+    :return: dict with occurrences
+    :rtype: dict
+    """
+    print("Converting list to dictionary")
+    freq_dict = {}  # Creating an empty dictionary
+    for item in line_list:
+        if (item in freq_dict):
+            freq_dict[item] += 1
+        else:
+            freq_dict[item] = 1
+    stringUtil.print_separator('-', 80)
+    return freq_dict
+
+
+def sort_dict_by_freq(freqDict):
+    print("Sorting dict by frequency...")
+    sortedDict = dict(
+        sorted(freqDict.items(), key=operator.itemgetter(1), reverse=True))
+    stringUtil.print_separator('-', 80)
+    return sortedDict
+
+
+def write_dic_to_file(sorted_dict, folder_path, dict_file):
+    print("Writing dictionary to file")
+    dict_file = folder_path + os.path.sep + dict_file
+    print("File", dict_file)
+    with open(dict_file, "w") as f:
+        if (WITH_COUNT is True):
+            for key, value in sorted_dict.items():
+                f.write(str(key) + " " + str(value) + '\n')
+        else:
+            for key in sorted_dict:
+                f.write(str(key))
+
+    stringUtil.print_separator('-', 80)
+    return dict_file
+
+
+filepath = masterUtil.ask_file_or_directory('folder')
+no_files = fileUtil.count_files_directories(False, True, filepath)
+workdir = masterUtil.ask_file_or_directory('folder')
+moveFiles(filepath, workdir, no_files)
+line_list = processFiles(workdir, no_files)
+folder_path = masterUtil.ask_file_or_directory('folder')
+list_file = masterUtil.ask_file_or_directory('file', 'save', 'txt')
+write_list_to_file(line_list, folder_path, list_file)
+freq_dict = list_to_dict(line_list)
+sorted_dict = sort_dict_by_freq(freq_dict)
+folder_path = masterUtil.ask_file_or_directory('folder', '', '')
+dict_file = masterUtil.ask_file_or_directory('file', 'save', 'txt')
+file = write_dic_to_file(sorted_dict, folder_path, dict_file)
