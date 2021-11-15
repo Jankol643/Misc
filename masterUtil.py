@@ -10,6 +10,7 @@ import getpass
 from pathlib import Path
 import re
 
+from tkinter import Tk, filedialog  # for selecting folder with GUI
 
 def get_platform():
     """
@@ -120,6 +121,7 @@ def get_active_window_repeatedly():
             print(new_window)
             window = new_window
 
+
 def sort_logically(result):
     """
     Sorts list like 1, 2, 10 instead of 1, 10, 2
@@ -136,3 +138,61 @@ def sort_logically(result):
     for item in result:
         result[result.index(item)] = str(item)
     return result
+
+
+def is_empty_or_blank(string):
+    """
+    Checks if a given string is empty or contains only whitespaces
+
+    :param string: string to check
+    :type string: string
+    :return: True if string is empty or contains only whitespaces
+    :rtype: boolean
+    """
+    return re.search("^\s*$", string)
+
+
+def check_list_empty(lst):
+    """
+    Checks if a list contains empty values or values with whitespaces
+
+    :param lst: list to check
+    :type lst: list
+    :return: true if list contains empty values or values with whitespaces
+    :rtype: boolean
+    """
+    result = any([is_empty_or_blank(elem) for elem in lst])
+    if result:
+        return True
+    else:
+        return False
+
+
+def ask_file_or_directory(type, action='', extension=''):
+    """
+    Asks the user to specify a file or a directory using a GUI
+    :string type: type to do action on (file or directory)
+    :string action: action to perform (open or save)
+    :string extension: extension of file(s) to open
+    :return var: path to file or directory
+    :raises ValueError: wrong type or action
+    """
+    root = Tk()  # pointing root to Tk() to use it as Tk() in program.
+    root.withdraw()  # Hides small tkinter window.
+    # Opened windows will be active above all windows despite of selection.
+    root.attributes('-topmost', True)
+    if (type == 'directory'):
+        var = filedialog.askdirectory()  # Returns opened path as str
+    elif (type == 'file'):
+        extension = '*.' + extension
+        if (action == 'open'):
+            var = filedialog.askopenfile(
+                mode='r', filetypes=['File', extension])
+        elif (action == 'save'):
+            var = filedialog.asksaveasfilename(
+                mode='w', filetypes=['File', extension])
+        else:
+            raise ValueError("Action must be open or save.")
+    else:
+        raise ValueError("Type must be file or directory")
+    return var
