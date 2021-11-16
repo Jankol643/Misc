@@ -33,23 +33,23 @@ def calc_discount(price, discount):
 
 def check_pythagoras(x, y, z):
     """
-    Checks if three numbers fulfill the Pythagorean Theorem
-    :int x:
-    :int y:
-    :int z:
-    :returns: true if the numbers fulfill the Pythagorean Theorem
+    Checks if three numbers form a Pythagorean triple
+    :int x: number 1
+    :int y: number 2
+    :int z: number 3
+    :returns: true if the numbers form a Pythagorean triple
     """
-    if (math.pow(x, 2) + math.pow(y, 2) == math.pow(z, 2)):
+    if (x * x + y * y == z * z):
         return True
-    elif (math.pow(x, 2) + math.pow(z, 2) == math.pow(y, 2)):
+    elif (x * x + z * z == y * y):
         return True
-    elif (math.pow(y, 2) + math.pow(x, 2) == math.pow(z, 2)):
+    elif (y * y + x * x == z * z):
         return True
-    elif (math.pow(y, 2) + math.pow(z, 2) == math.pow(x, 2)):
+    elif (y * y + z * z == x * x):
         return True
-    elif (math.pow(z, 2) + math.pow(x, 2) == math.pow(y, 2)):
+    elif (z * z + x * x == y * y):
         return True
-    elif (math.pow(z, 2) + math.pow(y, 2) == math.pow(x, 2)):
+    elif (z * z + y * y == x * x):
         return True
     return False
 
@@ -67,7 +67,7 @@ def divide_time(start_time, end_time, number_parts):
     except ValueError:
         raise ValueError("Cannot convert entered time to required format.")
     
-    if (start_time > end_time) or (start_time == end_time):
+    if (start_time >= end_time):
         raise ValueError("Start time must be less than end time")
 
     times = list()
@@ -97,7 +97,7 @@ def radians_to_degrees(radians):
 
 def fahrenheit_celsius(degreesF):
     """
-    Calculates degrees Fahrenheit to degrees Celsius
+    Converts degrees Fahrenheit to degrees Celsius
     :int degressF: degrees Fahrenheit
     :returns: degrees Celsius
     """
@@ -107,10 +107,41 @@ def fahrenheit_celsius(degreesF):
 
 def celsius_fahrenheit(degreesC):
     """
-    Calculates degrees Celsius to degrees Fahrenheit
+    Converts degrees Celsius to degrees Fahrenheit
     :int degressC: degrees Celsius
     :returns: degrees Fahrenheit
     """
     degreesF = 0
     degreesF = degreesC * 5/9 + 32
     return degreesF
+
+
+def pythagoreanTriplets(limits):
+    """
+    Prints the Pythagorean triplets up to an upper limit
+
+    :param limits: upper limit for triplets
+    :type limits: int
+    """
+    lst = list()
+    c, m = 0, 2
+ 
+    # Limiting c would limit
+    # all a, b and c
+    while c < limits:
+         
+        # Now loop on n from 1 to m-1
+        for n in range(1, m):
+            a = m * m - n * n
+            b = 2 * m * n
+            c = m * m + n * n
+ 
+            # if c is greater than
+            # limit then break it
+            if c > limits:
+                break
+ 
+            lst.append([a, b, c])
+        m = m + 1
+    lst.sort()
+    print(lst)
