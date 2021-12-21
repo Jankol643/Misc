@@ -187,6 +187,3 @@ def encode_morse(string):
         morse += char_to_morse[char] + " "
     
     print("Morse code: ", morse)
-
-string = input("Enter string to encode: ")
-encode_morse(string)
