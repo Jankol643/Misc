@@ -112,18 +112,24 @@ def print_filesize(file_path, unit="all"):
     :string file_path: path to file of which to display file sizes
     :string unit: unit to display file sizes (if not given, all file sizes are printed)
     """
-    filesize_B, filesize_MB, filesize_GB = get_filesize(file_path)
-    unit = unit.lower()
-    if unit in ['b', 'bytes']:
-        print("Filesize B: " + filesize_B)
-    elif unit in ['mb', 'megabytes']:
-        print("Filesize MB: " + filesize_MB)
-    elif unit in ['gb', 'gigabytes']:
-        print("Filesize GB: " + filesize_GB)
-    if unit == '' or unit == "all":
-        print("Filesize B: " + filesize_B)
-        print("Filesize MB: " + filesize_MB)
-        print("Filesize GB: " + filesize_GB)
+    filesize_B = os.stat(file_path).st_size
+    if filesize_B > 0:
+        unit = unit.lower()
+        if unit in ['b', 'bytes']:
+            print("Filesize B: " + filesize_B)
+        elif unit in ['mb', 'megabytes']:
+            print("Filesize MB: " + filesize_B/1000)
+        elif unit in ['gb', 'gigabytes']:
+            print("Filesize GB: " + filesize_B/1000000)
+        if unit == "all":
+            if filesize_B > 0:
+                print("Filesize B: " + filesize_B)
+            elif filesize_B > 1000:
+                print("Filesize MB: " + filesize_B/1000)
+            elif filesize_B > 1000000:
+                print("Filesize GB: " + filesize_B/1000000)
+    else:
+        print("File is empty")
 
 
 def read_file_to_list(file_path, no_newlines):
@@ -415,7 +421,7 @@ def filetypes_path_dir(gui, recursive, extension_list, dir_path=''):
         :string x: path of file to check
         :list extension_list: list with file extensions
         """
-        if get_filesize(x) < 0:
+        if get_filesize(x) == 0:
             pass
         else:
             arr = x.split('/')
