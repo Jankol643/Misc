@@ -1,9 +1,21 @@
+#!/usr/bin/env python
+"""
+This program reads a filename from STDIN and cleans the file
+Script must be in same folder as specified file
+Usage ./cleaner.py filename.txt
+Date 28/3/2021
+Author Jankol643
+Dependencies: bc for calculation, time for measuring execution time, awk, wc
+"""
+
 # Necessary imports
 import os  # for file checks
 import shutil  # for copying files
 import sys  # for terminating script
 from operator import itemgetter
-import masterUtil # for commonly used functions
+import stringUtil  # for commonly used functions
+import masterUtil
+import fileUtil
 
 from pyfiglet import Figlet  # import font library
 from tqdm import tqdm  # needed for progress bar tqdm
@@ -13,129 +25,120 @@ tempoutput = "temp.txt"
 defaultoutputdir = "cleaned"  # path to output directory
 withcount = 0
 nolines = 0
+separating_char = '-'
+separating_freq = 80
 
-masterUtil.printSeparator()
-masterUtil.print_header('cleanerUtil')
 
-"""print_info_wrapper
-Prints info about the file
-"""
 def print_info_wrapper(filename):
-    filename=masterUtil.askForFileOrDirectory('file', 'open', 'txt')
-    nolines=masterUtil.file_len(filename)
-    def print_info(filename):
-        print("print general information about the file")
-        print("filename:", filename)
-        print("No. of lines in file:", nolines)
-    print_info(filename)
+    """
+    Prints general information about the file
+    param filename: filename of file to analyze
+    type filename: string
+    """
+    filename = masterUtil.ask_file_or_directory('file', 'open', 'txt')
+    nolines = fileUtil.file_lines(filename)
+    print("general information about the file")
+    print("filename:", filename)
+    print("No. of lines in file:", nolines)
 
-"""
-Function that handles ordering of the words
-"""
-def ordering(filename):
-    dict0 = {}  # Create an empty dictionary
 
-    """writeWordsToDict(filename)
+def write_words_to_dict(filename):
+    """
     Writes the words to an empty dictionary and returns it
     """
-    def writeWordsToDict(filename):
-        for line in filename:  # Loop through each line of the file
-            # Check if the word is already in dictionary
-            if line in dict0:
-                # Increment count of word by 1
-                dict0[line] = dict0[line] + 1
-            else:
-                # Add the word to dictionary with count 1
-                dict0[line] = 1
-        return dict0
+    for line in filename:  # Loop through each line of the file
+        # Check if the word is already in dictionary
+        if line in dict0:
+            # Increment count of word by 1
+            dict0[line] = dict0[line] + 1
+        else:
+            # Add the word to dictionary with count 1
+            dict0[line] = 1
+    return dict0
 
-    dict = writeWordsToDict(filename)
 
+def sort_dict_by_freq(dict0):
     """
     Sorts the directionary by frequency of words
     """
-    def sortDictByFreq(dict0):
-        sorted_d = dict(
-            sorted(dict0.items(), key=itemgetter(1), reverse=True))
-        return sorted_d
+    sorted_d = dict(
+        sorted(dict0.items(), key=itemgetter(1), reverse=True))
+    return sorted_d
 
-    dictSorted = sortDictByFreq(dict)
 
-    # Writes the given dictionary to the given output file
-    # Delimiter is required as an argument
-    def writeDicToFile(dictSorted, delimiter):
-        print("Writing dictionary to output file...")
-        dicOutputFile = "wcount.txt"
-        wcount = open(dicOutputFile, "w")  # erasing all content in file
-        print("Writing words with count")
-        for key, val in dictSorted.items():
-            s = str(val) + delimiter + str(key)
-            b = wcount.write(s)
-        wcount.close()
-        wordsOutputFile = "words.txt"
-        words = open(wordsOutputFile, "w")  # erasing all content in file
-        print("Writing words only")
-        for val in dictSorted.items():
-            s = str(key)
-            words.write(s)
-        words.close()
+def write_dict_to_file(dict_sorted, delimiter):
+    """
+    Writes the given dictionary to the given output file
 
-    writeDicToFile(dictSorted, " ")
-    masterUtil.printSeparator()
+    :param dict_sorted: [description]
+    :type dict_sorted: [type]
+    :param delimiter: [description]
+    :type delimiter: [type]
+    """
+    print("Writing dictionary to output file...")
+    dic_output_file = "wcount.txt"
+    wcount = open(dic_output_file, "w")  # erasing all content in file
+    print("Writing words with count")
+    for key, val in dict_sorted.items():
+        s = str(val) + delimiter + str(key)
+        b = wcount.write(s)
+    wcount.close()
+    words_output_file = "words.txt"
+    words = open(words_output_file, "w")  # erasing all content in file
+    print("Writing words only")
+    for val in dict_sorted.items():
+        s = str(key)
+        words.write(s)
+    words.close()
 
-# Counts lines before and after cleaning and saved lines
+
 def wordcount():
+    """Counts lines before and after cleaning and saved lines"""
     print("Counting lines and duplicates")
     print("Number of lines original:", nolines)
-    nolinesoutput = masterUtil.file_len(tempoutput)
-    print("Number of lines output:", nolinesoutput)
-    linessaved = nolines - nolinesoutput
-    print("Lines saved", linessaved)
-    percentagesaved = linessaved/nolines*100
+    nolines_output = fileUtil.file_lines(tempoutput)
+    print("Number of lines output:", nolines_output)
+    lines_saved = nolines - nolines_output
+    print("Lines saved", lines_saved)
+    percentage_saved = lines_saved/nolines*100
     print('Cleaning deleted :0} lines and saved :1} % of total :2}'.format(
-        linessaved, percentagesaved, nolines))
-    masterUtil.printSeparator
+        lines_saved, percentage_saved, nolines))
+    stringUtil.print_separator(separating_char, separating_freq)
 
-def filesize(filename, output):
 
-    def calculatingSizes(filename, output):
-        print("Calculating file size")
+def calculating_sizes(filename, output):
+    print("Calculating file size")
 
-        def calcOutput(tempoutput):
-            print("Calculating file size of output file...")
-            # filesize in bytes of output file
-            filebout = masterUtil.getSize(filename).fileb
-            filembout = masterUtil.getSize(filename).filemb
-            filegbout = masterUtil.getSize(filename).filegb
+    def calcSaved(filename, tempoutput):
+        filesize_B_original = fileUtil.get_filesize(filename)
+        filesize_B_output = fileUtil.get_filesize(tempoutput)
 
-        def calcSaved(tempoutput):
-            savedmb = masterUtil.getSize(tempoutput).filemb - \
-                calcOutput(tempoutput).filembout
-            savedgb = masterUtil.getSize(tempoutput).filegb - \
-                calcOutput(tempoutput).filegbout
-            print('Cleaning saved :0} MB or :1} GB'.format(savedmb, savedgb))
+        difference = filesize_B_original - filesize_B_output
+        if difference > 0:
+            if difference >= 1000 and difference < 1000000:
+                print("Cleaning saved " + str(difference/1000) + " MB")
+            elif difference >= 1000000:
+                print("Cleaning saved " + str(difference/1000000) + " GB")
 
-        if output == 1:  # call with output file
-            calcOutput(tempoutput)
-            calcSaved()
-        else:
-            masterUtil.getSize(filename)
+    if output == 1:  # call with output file
+        calcSaved(filename, tempoutput)
+    else:
+        masterUtil.getSize(filename)
+    stringUtil.print_separator(separating_char, separating_freq)
 
-    masterUtil.printSeparator
 
-def PACKAnalysis(wocount):
+def PACK_analysis(wocount):
     pack = input("PACK analysis [y/n]")
     if pack in ('y', 'Y', 'yes', 'Yes', 'YES'):
         print("Feeding the file to PACK for analysis")
-        #statsgen wocount - o passwords_masks
-        masterUtil.printError
+        # statsgen wocount - o passwords_masks
         sys.exit()
     elif pack in ('n', 'N', 'no', 'No', 'NO'):
         print("Not analysing file.")
-        masterUtil.printError
         sys.exit()
 
-def copyDefinite(filename, tempoutput):
+
+def copy_definite(filename, tempoutput):
     print("Copying file to final destination")
     # Filename with extension, without folder paths
     base = os.path.basename(filename)
@@ -143,10 +146,18 @@ def copyDefinite(filename, tempoutput):
     print("Checking if folder for files exists...")
     if not os.path.exists(basename):
         print("Creating folder for files")
-        os.makeDirs(basename)
+        os.makedirs(basename)
 
     print("Setting parameters for copying.")
     original = tempoutput
     target = r'basename/base'
     print("Copying file to destination")
     shutil.move(original, target)
+
+
+if __name__ == '__main__':
+    dict0 = {}  # Create an empty dictionary
+    dict = write_words_to_dict(filename)
+    dict_sorted = sort_dict_by_freq(dict)
+    write_dict_to_file(dict_sorted, " ")
+    stringUtil.print_separator(separating_char, separating_freq)
