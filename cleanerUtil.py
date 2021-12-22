@@ -17,8 +17,8 @@ import stringUtil  # for commonly used functions
 import masterUtil
 import fileUtil
 
-from pyfiglet import Figlet  # import font library
-from tqdm import tqdm  # needed for progress bar tqdm
+# from pyfiglet import Figlet  # import font library
+# from tqdm import tqdm  # needed for progress bar tqdm
 
 # Setting standard variables
 tempoutput = "temp.txt"
@@ -35,25 +35,53 @@ def print_info_wrapper(filename):
     param filename: filename of file to analyze
     type filename: string
     """
-    filename = masterUtil.ask_file_or_directory('file', 'open', 'txt')
     nolines = fileUtil.file_lines(filename)
     print("general information about the file")
     print("filename:", filename)
     print("No. of lines in file:", nolines)
 
 
+def check_separated(filename):
+    """
+    Check if file lines are separated by colon
+
+    :param filename: path to file
+    :type filename: string
+    :returns b: if file is properly separated
+    :rtype: boolean
+    """
+    line_count = 0
+    for line in filename:
+        line_count = line_count + 1
+        if line_count > 9:
+            break
+        if ':' in line:
+            splitted = line.split(':')
+            if splitted[0] == '' and splitted[1] == '':
+                return False
+        else:
+            return False
+    return True
+
+
 def write_words_to_dict(filename):
     """
     Writes the words to an empty dictionary and returns it
     """
-    for line in filename:  # Loop through each line of the file
-        # Check if the word is already in dictionary
-        if line in dict0:
-            # Increment count of word by 1
-            dict0[line] = dict0[line] + 1
-        else:
-            # Add the word to dictionary with count 1
-            dict0[line] = 1
+    dict0 = {}  # Create an empty dictionary
+    if check_separated(filename) == True:
+        for line in filename:  # Loop through each line of the file
+            splitted = line.split(':')
+            # Check if the word is already in dictionary
+            if splitted[1] in dict0:
+                # Increment count of word by 1
+                dict0[splitted[0]] = dict0[splitted[0]] + 1
+            else:
+                # Add the word to dictionary with count 1
+                dict0[line] = 1
+    else:
+        raise ValueError(
+            "File is not properly separated. Only words are not allowed for now")
     return dict0
 
 
@@ -61,8 +89,7 @@ def sort_dict_by_freq(dict0):
     """
     Sorts the directionary by frequency of words
     """
-    sorted_d = dict(
-        sorted(dict0.items(), key=itemgetter(1), reverse=True))
+    sorted_d = dict(sorted(dict0.items(), key=itemgetter(1), reverse=True))
     return sorted_d
 
 
@@ -156,8 +183,8 @@ def copy_definite(filename, tempoutput):
 
 
 if __name__ == '__main__':
-    dict0 = {}  # Create an empty dictionary
-    dict = write_words_to_dict(filename)
-    dict_sorted = sort_dict_by_freq(dict)
+    filename = masterUtil.ask_file_or_directory('file', 'open', 'txt')
+    dict1 = write_words_to_dict(filename)
+    dict_sorted = sort_dict_by_freq(dict1)
     write_dict_to_file(dict_sorted, " ")
     stringUtil.print_separator(separating_char, separating_freq)
