@@ -23,7 +23,7 @@ import fileUtil
 # Setting standard variables
 tempoutput = "temp.txt"
 defaultoutputdir = "cleaned"  # path to output directory
-withcount = 0
+withcount = 0 # if target dictionary should contain frequencies
 nolines = 0
 separating_char = '-'
 separating_freq = 80
@@ -41,19 +41,21 @@ def print_info_wrapper(filename):
     print("No. of lines in file:", nolines)
 
 
-def check_separated(filename):
+def check_separated(lst, max_count):
     """
     Check if file lines are separated by colon
 
-    :param filename: path to file
-    :type filename: string
+    :param lst: file lines
+    :type lst: list
+    :param max_count: number of lines to check
+    :type max_count: integer
     :returns b: if file is properly separated
     :rtype: boolean
     """
     line_count = 0
-    for line in filename:
+    for line in lst:
         line_count = line_count + 1
-        if line_count > 9:
+        if line_count > max_count:
             break
         if ':' in line:
             splitted = line.split(':')
@@ -64,21 +66,21 @@ def check_separated(filename):
     return True
 
 
-def write_words_to_dict(filename):
+def write_words_to_dict(lst):
     """
     Writes the words to an empty dictionary and returns it
     """
     dict0 = {}  # Create an empty dictionary
-    if check_separated(filename) == True:
-        for line in filename:  # Loop through each line of the file
+    if check_separated(lst, 10) == True:
+        for line in lst:  # Loop through each line of the file
             splitted = line.split(':')
             # Check if the word is already in dictionary
             if splitted[1] in dict0:
                 # Increment count of word by 1
-                dict0[splitted[0]] = dict0[splitted[0]] + 1
+                dict0[splitted[1]] = dict0[splitted[1]] + 1
             else:
                 # Add the word to dictionary with count 1
-                dict0[line] = 1
+                dict0[splitted[1]] = 1
     else:
         raise ValueError(
             "File is not properly separated. Only words are not allowed for now")
@@ -93,30 +95,38 @@ def sort_dict_by_freq(dict0):
     return sorted_d
 
 
-def write_dict_to_file(dict_sorted, delimiter):
+def write_dict_to_file(dict_sorted, original_file, delimiter, mode):
     """
     Writes the given dictionary to the given output file
 
-    :param dict_sorted: [description]
-    :type dict_sorted: [type]
-    :param delimiter: [description]
-    :type delimiter: [type]
+    :param dict_sorted: sorted dictionary with words
+    :type dict_sorted: dict
+    :param original_file: path to file with unordered wordlist
+    :type original_file: string
+    :param delimiter: delimiter between words and counts
+    :type delimiter: string
+    :param mode: 1 words and frequencies, 2 print only words
+    :type mode: int
     """
     print("Writing dictionary to output file...")
-    dic_output_file = "wcount.txt"
-    wcount = open(dic_output_file, "w")  # erasing all content in file
-    print("Writing words with count")
-    for key, val in dict_sorted.items():
-        s = str(val) + delimiter + str(key)
-        b = wcount.write(s)
-    wcount.close()
-    words_output_file = "words.txt"
-    words = open(words_output_file, "w")  # erasing all content in file
-    print("Writing words only")
-    for val in dict_sorted.items():
-        s = str(key)
-        words.write(s)
-    words.close()
+    if mode == 1:
+        dic_output_file = "wcount.txt"
+        final_path = os.path.dirname(original_file) + os.path.sep + dic_output_file
+        wcount = open(final_path, "w")  # erasing all content in file
+        print("Writing words with count")
+        for key, val in dict_sorted.items():
+            s = str(key) + delimiter + str(val)
+            wcount.write(s + "\n")
+        wcount.close()
+    if mode == 2:
+        words_output_file = "words.txt"
+        final_path = os.path.dirname(original_file) + os.path.sep + words_output_file
+        words = open(final_path, "w")  # erasing all content in file
+        print("Writing words only")
+        for val in dict_sorted.items():
+            s = str(key)
+            words.write(s + "\n")
+        words.close()
 
 
 def wordcount():
@@ -134,7 +144,6 @@ def wordcount():
 
 
 def calculating_sizes(filename, output):
-    print("Calculating file size")
 
     def calcSaved(filename, tempoutput):
         filesize_B_original = fileUtil.get_filesize(filename)
@@ -147,6 +156,7 @@ def calculating_sizes(filename, output):
             elif difference >= 1000000:
                 print("Cleaning saved " + str(difference/1000000) + " GB")
 
+    print("Calculating file size")
     if output == 1:  # call with output file
         calcSaved(filename, tempoutput)
     else:
@@ -154,7 +164,7 @@ def calculating_sizes(filename, output):
     stringUtil.print_separator(separating_char, separating_freq)
 
 
-def PACK_analysis(wocount):
+def PACK_analysis():
     pack = input("PACK analysis [y/n]")
     if pack in ('y', 'Y', 'yes', 'Yes', 'YES'):
         print("Feeding the file to PACK for analysis")
@@ -184,7 +194,12 @@ def copy_definite(filename, tempoutput):
 
 if __name__ == '__main__':
     filename = masterUtil.ask_file_or_directory('file', 'open', 'txt')
-    dict1 = write_words_to_dict(filename)
-    dict_sorted = sort_dict_by_freq(dict1)
-    write_dict_to_file(dict_sorted, " ")
-    stringUtil.print_separator(separating_char, separating_freq)
+    if os.stat(filename).st_size > 0:
+        print_info_wrapper(filename)
+        lst = fileUtil.remove_empty_lines(filename, True)
+        dict1 = write_words_to_dict(lst)
+        dict_sorted = sort_dict_by_freq(dict1)
+        write_dict_to_file(dict_sorted, filename, " ", 1)
+        stringUtil.print_separator(separating_char, separating_freq)
+    else:
+        sys.exit("File is empty. Aborting")

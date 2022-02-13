@@ -9,6 +9,7 @@ import string
 import getpass
 from pathlib import Path
 import re
+import os # for getting filepath
 
 from tkinter import Tk, filedialog  # for selecting folder with GUI
 
@@ -168,7 +169,7 @@ def check_list_empty(lst):
         return False
 
 
-def ask_file_or_directory(type, action='', extension=''):
+def ask_file_or_directory(type, action='', extension='*.*'):
     """
     Asks the user to specify a file or a directory using a GUI
     :string type: type to do action on (file or directory)
@@ -187,7 +188,8 @@ def ask_file_or_directory(type, action='', extension=''):
         extension = '*.' + extension
         if (action == 'open'):
             var = filedialog.askopenfile(
-                mode='r', filetypes=['File', extension])
+                mode='r', filetypes=[('File', extension)])
+            var = os.path.abspath(var.name)
         elif (action == 'save'):
             var = filedialog.asksaveasfilename(
                 mode='w', filetypes=['File', extension])

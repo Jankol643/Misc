@@ -14,7 +14,8 @@ from itertools import islice
 import datetime
 import random
 import re
-
+import tkinter as tk
+from tkinter import messagebox
 
 def file_lines(file_path):
     """
@@ -49,40 +50,6 @@ def get_filesize(file_path):
         return filesize_B
     else:
         raise FileNotFoundError
-
-
-def open_file(file_path, mode, empty):
-    """
-    Opens a file and returns it
-    :string file_path: path to file
-    :string mode: in which mode to open file
-    :boolean empty: if True file can be empty
-    :returns: opened file
-    :raises ValueError: mode is not allowed
-    :raises EOFError: if empty is False and file is empty
-    :raises OSError: file cannot be opened
-    :raises FileNotFoundError: file cannot be found
-    :raises Exception: file_path is not a file
-    """
-    allowed_modes = ['r', 'w', 'w+', 'x', 'x+', 'a', 'a+', 'b', 't']
-    if mode not in allowed_modes:
-        raise ValueError("Mode is not allowed")
-    if os.path.isfile(file_path):
-        if (empty == False and get_filesize(file_path) == 0):
-            raise EOFError
-        try:
-            file = open(file_path, mode)
-            return file
-        except OSError:
-            raise OSError
-        except FileNotFoundError:
-            raise FileNotFoundError
-    else:
-        if mode not in ['w', 'w+', 'a', 'a+', 'x', 'x+']:
-            raise Exception("Specified file is not a file.")
-        else:
-            file = open(file_path, mode)
-            return file
 
 
 def check_file_type(file_path, extension):
@@ -144,14 +111,47 @@ def read_file_to_list(file_path, no_newlines):
         raise Exception("File is too large to write to a single list.")
     else:
         list1 = list()
-        file = open_file(file_path, 'r', False)
-        for line in file:
-            if no_newlines == True:
+        with open(file_path, 'r') as file:
+            for line in file:
+                if no_newlines == True:
+                    line = line.rstrip('\n')
+                    list1.append(line)
+                else:
+                    list1.append(line)
+        return list1
+
+
+def remove_empty_lines(file_path, new_file=None, new_path=None):
+    """
+    Removes empty lines from file
+
+    :param file_path: path to file to clean
+    :type file_path: string
+    """
+
+    if file_lines(file_path) > sys.maxsize/8:
+        raise Exception("File is too large to write to a single list.")
+    else:
+        list1 = []
+        with open(file_path, 'r') as file:
+            for line in file:
                 line = line.rstrip('\n')
-                list1.append(line)
-            else:
-                list1.append(line)
-        file.close()
+                if line != '':
+                    list1.append(line)
+
+        if new_file == None:
+            return list1
+
+        if new_file != None:
+            temp_file = "temp.txt"
+            folder_path = os.path.dirname(file_path)
+            total_path = folder_path + os.path.sep + temp_file
+            if new_path != None:
+                total_path = new_path
+            with open(total_path, 'x') as file:
+                for line in list1:
+                    file.write(line)
+
         return list1
 
 
@@ -162,10 +162,9 @@ def count_words_file(file_path):
     :returns: number of words in file
     """
     count = 0
-    file = open_file(file_path, 'r', True)
-    for line in file:
-        count += 1
-    file.close()
+    with open(file_path) as file:
+        for _ in file:
+            count += 1
     return count
 
 
@@ -207,15 +206,14 @@ def access_file_line(file_path, line_number, action, big_file, empty, text=''):
         if action == 'r':
             return linecache.getline(file_path, line_number)
         elif action == 'w':
-            file = open_file(file_path, 'w', True)
-            if line_number > 1:
-                for line in file:
-                    line_count += 1
-                    if line_count == line_number:
-                        line = text
-                file.close()
-            else:  # only one line in file
-                file.write(text)
+            with open(file_path, 'w') as f:
+                if line_number > 1:
+                    for line in f:
+                        line_count += 1
+                        if line_count == line_number:
+                            line = text
+                else:  # only one line in file
+                    f.write(text)
         else:
             raise ValueError("Action must be 'r' or 'w'.")
 
@@ -233,7 +231,7 @@ def create_file_folder(gui, n=0, file_extensions=['txt'], from_file=False, namep
 
     if (from_file not in [True, False]):
         raise ValueError("from_file must be true or false")
-    if (n == 0 and from_file == False):
+    if (n <= 0 and from_file == False):
         raise ValueError("n or from_file must be specified")
     if (from_file == True and namepath == None):
         raise ValueError("Namepath must be specified when using from_file")
@@ -252,17 +250,17 @@ def create_file_folder(gui, n=0, file_extensions=['txt'], from_file=False, namep
     errors = list()
 
     if from_file == True:
-        filelist = read_file_to_list(namepath)
+        filelist = read_file_to_list(namepath, False)
         for name in filelist:
-            name = name.strip()
-            final_path = os.path.join(folder_path, name)
-            if "." not in name:  # file extension missing
-                errors.append(final_path)
-            try:
-                fp = open(final_path, 'x')
-            except Exception:
-                errors.append(final_path)
-            fp.close()
+            if name != '':
+                final_path = os.path.join(folder_path, name)
+                if "." not in name:  # file extension missing
+                    errors.append(final_path)
+                try:
+                    fp = open(final_path, 'x')
+                    fp.close()
+                except Exception:
+                    errors.append(final_path)
 
     if from_file == False:
         for i in range(0, n):
@@ -271,12 +269,12 @@ def create_file_folder(gui, n=0, file_extensions=['txt'], from_file=False, namep
             final_path = os.path.join(folder_path, file_name)
             try:
                 fp = open(final_path, 'x')
+                fp.close()
             except Exception:
                 errors.append(final_path)
-            fp.close()
 
     if len(errors) > 0:
-        print("Errors occured.")
+        print("Errors occured while opening created files.")
         print(errors)
 
 
